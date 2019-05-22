@@ -159,6 +159,7 @@ public void SectionAdding() throws InterruptedException {
 	//driver.WebDriver.attachToSession(executor, session_id);
 	System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 	System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+	System.out.println("modifico getstuff aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 }
 
 
