@@ -1,0 +1,1218 @@
+<div id="my-modal-parent">
+</div>
+<div data-ng-controller="searchCtrl">
+	<div class="navBarMenuFunzioni" id="navbarMenu">
+		<ul class="nav navbar-nav hidden-xs">
+			<!-- <li><a href="#"><span class="glyphicon glyphicon-bullhorn"></span> Partecipa al sondaggio per migliorare il portale acquisti in rete pa, la tua opinione conta!</a></li> -->
+			<li>
+				<a href="http://www.consip.it/" target="_blank" style="padding-top: 8px; padding-bottom: 5px">
+					<img src="./images/Header/consip.png" alt="Logo Consip" class="img-responsive logoConsip">
+				</a>
+			</li>
+
+			<li>
+				<a href="http://www.mef.gov.it/" id="go_to_mef_link" target="_blank" style="padding-top: 7px; padding-bottom: 5px">
+					<img src="./images/Header/mef.png" alt="Logo MEF" class="img-responsive">
+				</a>
+			</li>
+
+
+		</ul>
+
+
+		<div class="row visible-xs" style="min-height:65px">
+			<div class="col-xs-12 nopadding">
+				<div style="height:65px">
+					<div class="col-xs-5 vertical-align-xs">
+						<a href="http://www.consip.it/" target="_blank">
+							<img src="./images/Header/consip.png" alt="Logo Consip" class="img-responsive">
+						</a>
+					</div>
+					<div class="col-xs-4 vertical-align-xs nopadding-xs">
+						<a href="http://www.mef.gov.it/" target="_blank">
+							<img src="./images/Header/mef.png" alt="Logo MEF" class="img-responsive">
+						</a>
+					</div>
+
+
+
+					<div class="pull-right">
+						<ul class="nav navbar-nav">
+
+							<li class="dropdown">
+								<a class="fontBlue" href="#" style="padding-top: 13px;padding-left:5px">
+									<span class="flag-xs" style="vertical-align:middle">ITA</span>
+									<img style="padding-left: 5px; text-align: right;" src="./images/Header/bandiera.png" alt="Italiano">
+
+								</a>
+
+								<!--     <ul class="dropdown-menu" style="min-width: 10px !important;z-index:9999;background-color:transparent;border:none">
+                                        <li><a href="/english/program_en.html" data-ng-click="destroySession()" style="padding-left: 33px;"><img style="width: 35px; height: 23px; text-align: right;"
+											src="./images/Header/bandiera_uk.png" alt="English"></a></li>
+                                    </ul> -->
+							</li>
+							<!-- eng
+                                <li class="dropdown"><a class="fontBlue" href="#" style="padding-top: 13px;padding-left:5px"> <span class="flag-xs" style="vertical-align:middle">ENG</span> <img style="padding-left: 5px; text-align: right;"
+									src="./images/Header/bandiera_uk.png:a13eef1b-c1e0-11e6-9a49-adcb1677e681)</cms:link>" alt="English">
+
+									</a>
+
+                                    <ul class="dropdown-menu" style="min-width: 10px !important;z-index:9999;background-color:transparent;border:none">
+                                        <li><a href="<cms:link>%(link.weak:/index.html:8c7eb09c-a4ce-11e6-8744-2df343192d3f)</cms:link>" data-ng-click="destroySession()" style="padding-left: 33px;"><img style="width: 35px; height: 23px; text-align: right;"
+											src="./images/Header/bandiera.png:4f2289cc-798a-11e6-9493-2df343192d3f)</cms:link>" alt="Italiano"></a></li>
+                                    </ul>
+                                </li>-->
+
+						</ul>
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+
+		<div class="nav navbar-nav navbar-right hidden-xs" style="padding-top: 7px;">
+
+			<ul class="nav nav-pills" role="tablist" data-ng-show="model.userEnable">
+				<li>
+					<ul class="nav navbar-nav" data-ng-if="model.personalInfoSession.loginInfoBean.ruolo.toUpperCase() != 'OPER' && model.personalInfoSession.loginInfoBean.ruolo.toUpperCase() != 'REGISTRATO' ">
+						<li class="dropdown">
+							<a href="#" target="_self" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 15px;padding-right:5px">
+								<img class="marginImgMenu" src="./images/Header/star.png" alt="Preferiti">
+								<span class="badge badgeCustom" data-ng-if="showFavCount">{{(model.numItemPreferiti.numeroItemProdotti*1) + (model.numItemPreferiti.numeroItemFornitori*1)}}</span>
+								<span class="hidden-sm hidden-md">
+									<strong>PREFERITI</strong>
+								</span>
+							</a>
+							<ul class="dropdown-menu">
+								<li>
+									<a style="background-color:white" href="/opencms/opencms/liste_preferiti.html?title=Prodotti#/">Prodotti
+										<span data-ng-show="showFavCount"> ({{model.numItemPreferiti.numeroListeProdotti}} {{model.numItemPreferiti.numeroListeProdotti != 1 ? 'Liste' : 'Lista'}})</span>
+									</a>
+								</li>
+								<li data-ng-if="model.personalInfoSession.loginInfoBean.tipologiaUtente != 'IMPRESA'">
+									<a style="background-color:white" href="/opencms/opencms/liste_preferiti.html?title=Fornitori#/">Fornitori
+										<span data-ng-show="showFavCount"> ({{model.numItemPreferiti.numeroListeFornitori}} {{model.numItemPreferiti.numeroListeFornitori != 1 ? 'Liste' :
+											'Lista'}})</span>
+									</a>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</li>
+				<li>
+					<ul class="nav navbar-nav">
+						<li class="dropdown">
+							<a data-cg-busy="{promise:detailPromiseLink,templateUrl:'./views/common/spinnerSmall.html'}" class="dropdown-toggle noBackdrop micro-busy"
+							 href="#" style="font-size: 15px;padding-right:5px">
+								<img class="marginImgMenu" src="./images/Header/link.png" alt="Link Utili">
+								<span class="badge badgeCustom" data-ng-if="showLinkCount">{{model.numLinkRapidi.numItem}}</span>
+								<span class="hidden-sm hidden-md">
+									<strong>I MIEI LINK</strong>
+								</span>
+							</a>
+							<!-- disabilitato -->
+							<ul class="dropdown-menu hidden" style="min-width: 300px;" data-dnd-list="model.linkUtili" data-dnd-inserted="dndInsert(event,index)">
+								<!-- dnd-moved="(model.linkUtili).splice($index, 1); logEvent('Item moved to ' +$index , event, $index)" -->
+								<li data-ng-repeat="link in model.linkUtili" data-ng-show="checked" data-dnd-draggable="link" data-dnd-effect-allowed="move"
+								 data-dnd-dragstart="startDnd($index)" data-dnd-dragend="dndEnd('Drag operation ended to ' +$index, event)" data-ng-class=" checked ? '' : 'noDrag' ">
+									<div class="container-fluid">
+										<div class="row">
+											<div class="col-sm-12" style="background-color: #f8f8f8; padding: 10px">
+
+												<div class="col-sm-1 nopadding" style="top: -3px" data-ng-show="checked">
+													<img src="./images/Header/hamburger.png" alt="Hamburger">
+												</div>
+												<div class="col-sm-11" style="padding-left:5px;display: inline">
+													<span style="margin-top: 3px">
+														<a style="padding-left:0px">{{link.testoLink}}</a>
+													</span>
+													<a href="#" data-ng-click="deleteLink(link.idLink)" style="position: absolute; right: 0px;top:-3px;width:24px;height:24px">
+														<!-- <img class="cursor" style="position: absolute; right: 0px;top:-3px;width:24px;height:24px" src="/opencms/opencms/immagini/rifacimento_nuovo_portale/chiudi_icon.png" -->
+														 aria-hidden="true" data-ng-show="checked" alt="chiudi_icon">
+													</a>
+												</div>
+											</div>
+										</div>
+									</div>
+
+								</li>
+								<li data-ng-if="model.isQuickLink" data-ng-show="checked">
+									<div class="container-fluid">
+										<div class="row">
+											<div class="col-sm-12 paddingLR5" data-ng-show="model.addLinkUtili">
+												<div class="col-sm-12" style="padding:5px 2px; border:1px dashed #bbb">
+													<div class="col-sm-9" style="padding:5px 0">{{model.titleQuickLink}}</div>
+													<div class="col-sm-3 nopadding" aria-hidden="true">
+														<button class="btn-sm colorButtonWhiteBlueBorder fontBlue" style="position:relative; top:5px;border-radius:0px" type="submit"
+														 data-ng-click="aggiungiQuickLink()">AGGIUNGI</button>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</li>
+								<li data-ng-repeat="link in model.linkUtili | orderBy:'ordine'" data-ng-show="!checked">
+									<div class="container-fluid">
+										<div class="row">
+											<div class="col-sm-12" style="background-color: #f8f8f8; padding: 10px">
+
+
+												<div class="col-sm-11" style="padding-left: 5px;display: inline">
+													<span style="margin-top: 3px">
+														<a data-ng-href="{{link.urlLink}}" style="padding-left:0px">{{link.testoLink}}</a>
+													</span>
+
+												</div>
+											</div>
+										</div>
+									</div>
+								</li>
+								<li data-ng-if="!model.isQuickLink" style="font-size:12px;padding: 15px">Non è possibile aggiungere questo link ai preferiti</li>
+								<li data-ng-if="model.isQuickLink" data-ng-show="!checked">
+									<div class="container-fluid">
+										<div class="row">
+											<div class="col-sm-12 paddingLR5" data-ng-show="model.addLinkUtili">
+												<div class="col-sm-12" style="padding:5px 2px; border:1px dashed #bbb">
+													<div class="col-sm-9" style="padding:5px 0">{{model.titleQuickLink}}</div>
+													<div class="col-sm-3 nopadding" aria-hidden="true">
+														<button class="btn-sm colorButtonWhiteBlueBorder fontBlue" style="position:relative; top:5px;border-radius:0px" type="submit"
+														 data-ng-click="aggiungiQuickLink()">AGGIUNGI</button>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</li>
+								<li>
+									<div class="col-sm-12 paddingLR5" style="background-color:white">
+										<label for="gestisci">GESTISCI </label>
+										<input type="checkbox" style="position:relative; top:2px" id="gestisci" data-ng-model="checked"
+										 aria-label="Toggle ngHide">
+									</div>
+								</li>
+							</ul>
+						</li>
+					</ul>
+
+					<ul class="nav navbar-nav" data-ng-if="model.personalInfoSession.loginInfoBean.tipologiaUtente != 'IMPRESA' && model.personalInfoSession.loginInfoBean.ruolo != 'OPER' && model.personalInfoSession.loginInfoBean.ruolo != 'REGISTRATO' && model.personalInfoSession.loginInfoBean.ruolo != 'INZADMIN'">
+						<li>
+							<a id="header_chart" data-cg-busy="{promise:detailPromiseCarrello,templateUrl:'./views/common/spinnerSmall.html'}"
+							 href="/opencms/opencms/pagina_carrello.html" class="violetHeader noBackdrop micro-busy" style="font-size: 15px;padding-right:5px">
+								<img class="marginImgMenu" src="./images/Header/carrello.png" alt="Carrello">
+								<span class="badge badgeCustom" data-ng-if="showCartCount && model.numItemCarrello > 0">{{model.numItemCarrello}}</span>
+								<span class="hidden-sm hidden-md">
+									<strong>CARRELLO</strong>
+								</span>
+							</a>
+						</li>
+					</ul>
+
+					<ul class="nav navbar-nav">
+						<li>
+							<a href="/opencms/opencms/messaggi/" id="header_messages" data-cg-busy="{promise:detailPromiseMessaggi,templateUrl:'./views/common/spinnerSmall.html'}"
+							 class="violetHeader noBackdrop micro-busy" style="font-size: 15px;padding-right:5px">
+								<img class="marginImgMenu" src="./images/Header/messaggi.png" alt="Messaggi">
+								<span class="badge badgeCustom" data-ng-if="showMsgCount">{{model.numMessaggi}}</span>
+								<span class="hidden-sm hidden-md">
+									<strong>MESSAGGI</strong>
+								</span>
+							</a>
+						</li>
+					</ul>
+					<ul class="nav navbar-nav">
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 15px;padding-right:5px;font-weight:bold">
+								<div class="col-sm-12 nopadding headerName">
+									<div class="vertical-align-inside-div" style="color:white">{{model.personalInfoSession.personalInfo.nome | limitTo:1}} {{model.personalInfoSession.personalInfo.cognome | limitTo:1}}</div>
+								</div>
+								<div class="textViolet hidden-xs hidden-sm" style="display:inline;margin-left:9px" onclick="window.location.href='/opencms/opencms/cruscotto/index.html'">
+								CRUSCOTTO
+								</div>
+							</a>
+							<ul class="dropdown-menu bubble-menu-nome" style="z-index:9999;padding-left:40px;min-width:220px">
+
+
+								<li>
+									<div class="row voffset3">
+										<a class="col-sm-12 borderB" style="height:45px" href="/opencms/opencms/cruscotto/index.html">
+											<div class="col-sm-2 nopadding vertical-align-inside-div">
+												<!-- <img alt="cruscotto" src="/opencms/opencms/immagini/rifacimento_nuovo_portale/HP/cruscotto.png"> -->
+											</div>
+											<div class="col-sm-10 vertical-align-inside-div-text-left">
+												<strong>
+													<span>Cruscotto</span>
+												</strong>
+											</div>
+										</a>
+									</div>
+								</li>
+								<li>
+									<div class="row">
+										<a class="col-sm-12 borderB " style="height:45px" href="#">
+											<div class="col-sm-2 nopadding vertical-align-inside-div">
+												<!-- <img alt="gestioneprofilo" src="/opencms/opencms/immagini/rifacimento_nuovo_portale/HP/profilo.png"> -->
+											</div>
+											<div class="col-sm-10 vertical-align-inside-div-text-left" data-ng-click="showModalProfilo()">
+												<strong>
+													<span>Gestione Profilo</span>
+												</strong>
+											</div>
+
+										</a>
+									</div>
+								</li>
+								<li>
+									<div class="row">
+										<a class="col-sm-12 borderB" style="height:45px" data-ng-href="/shres/logout.portal?user_name={{model.personalInfoSession.personalInfo.username}}&landing_code=WP003">
+											<!-- /shres/logout.portal?cambiaprofilo=cambia+ufficio -->
+											<div class="col-sm-2 nopadding vertical-align-inside-div">
+												<!-- <img alt="cambiaufficio" src="/opencms/opencms/immagini/rifacimento_nuovo_portale/HP/cambia.png"> -->
+											</div>
+											<div class="col-sm-10 vertical-align-inside-div-text-left">
+												<strong>
+													<span>Cambia Ufficio</span>
+												</strong>
+											</div>
+
+										</a>
+									</div>
+								</li>
+								<li>
+									<div class="col-sm-12 voffset4 margin-bottom-20 nopadding underlined text-center">
+										<a class="showShadow" data-ng-href="/shres/logout.portal?user_name={{model.personalInfoSession.personalInfo.username}}&landing_code=WP001">
+
+											<strong>Esci</strong>
+
+
+										</a>
+									</div>
+								</li>
+							</ul>
+						</li>
+					</ul>
+
+					<ul class="nav navbar-nav">
+						<!-- <li  class="dropdown">
+<a href="" style="padding-top:12px;" data-ng-click="sedieList()"><img src="./images/Header/bandiera.png:4f2289cc-798a-11e6-9493-2df343192d3f)</cms:link>" ><img src="./images/Header/arrow.png:f8a9b2b3-7989-11e6-afe4-2df343192d3f)</cms:link>" style="padding-left: 9px;padding-top: 0px;"></a>
+
+
+</li> -->
+
+
+						<li class="dropdown">
+							<a class="dropdown-toggle" data-toggle="dropdown" href="#" style="padding-top: 13px;">
+								<span style="vertical-align:middle">ITA</span>
+								<img src="./images/Header/bandiera.png" alt="Italiano">
+								<!--<img
+							src="./images/Header/arrow.png:f8a9b2b3-7989-11e6-afe4-2df343192d3f)</cms:link>" alt="Espandi"
+							style="padding-left: 9px; padding-top: 0px;">-->
+							</a>
+
+							<!--      <ul class="dropdown-menu" style="width: 47px;right: 9px; min-width: 10px !important;z-index:9999">
+                                <li><a href="english/program_en.html" data-ng-click="destroySession()" style="padding-top: 12px;"><img style="width: 35px; height: 23px;"
+									src="./images/Header/bandiera_uk.png:" alt="English"></a></li>
+                            </ul> -->
+						</li>
+
+						<!-- eng
+                        <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#" style="padding-top: 13px;"> <span style="vertical-align:middle">ENG</span> <img
+							src="./images/Header/bandiera_uk.png" alt="English"></a>
+
+                            <ul class="dropdown-menu" style="width: 47px;right: 9px; min-width: 10px !important;z-index:9999">
+                                <li><a href="index.html" data-ng-click="destroySession()" style="padding-top: 12px;"><img style="width: 35px; height: 23px;"
+									src="./images/Header/bandiera.png" alt="Italiano"></a></li>
+                            </ul>
+                        </li> -->
+
+
+
+					</ul>
+
+			</ul>
+			<ul class="nav nav-pills" role="tablist" data-ng-show="!model.userEnable">
+				<li>
+					<ul class="nav navbar-nav">
+					</ul>
+				</li>
+				<li>
+					<ul class="nav navbar-nav">
+
+						<li id="loginContainer" data-container="body">
+							<a href="#" draggable="false" data-ng-class="disableAccedi ? 'disableHref':''" data-ng-click="model.showLoginPanel = !model.showLoginPanel"
+							 id="accedi" class="regular" style="color:#777">
+								<strong>ACCEDI</strong>
+							</a>
+							<!-- <ul id="login-dp" class="dropdown-menu" > -->
+							<div data-ng-show="model.showLoginPanel">
+								<ul id="login-dp" class="login-panel list-unstyled" data-ng-class="model.hasError || errorCodeSpid ? 'login-error-height' : ''">
+									<li>
+										<div class="row">
+											<div class="col-sm-5 pull-right">
+												<!-- <div class="text-center regular-14 voffset3">Effettua il <strong>login</strong> per accedere al <strong>catalogo</strong> completo delle offerte</div> -->
+												<form name="form" class="form margin-top-20" method="post" data-ng-submit="sedieList()" accept-charset="UTF-8" id="login-nav"
+												 novalidate>
+													<!--<label for="actionid" class="hide">action</label>-->
+													<input type="hidden" name="action" id="actionid" value="login" data-ng-model="action">
+													<input type="hidden" name="p_done_url" id="p_done_url" data-ng-model="p_done_url" value="/opencms/opencms/main/areapersonale/homepageRedirect.jsp">
+
+													<input type="hidden" name="successurl" id="successurlId" data-ng-model="successurl" value="https://evo.acquistinretepa.it/shres/internal/userProfile">
+
+													<input type="hidden" name="cortesiaVis" id="cortesiaVis" data-ng-model="cortesiaVis" value="">
+
+													<input type="hidden" name="cortesia_url" id="cortesia_url" data-ng-model="cortesia_url" value="">
+													<div class="form-group" data-ng-class="{'has-warning': (form.user.$dirty && form.user.$invalid),'has-error': model.hasError}">
+														<label class="sr-only" for="user">User</label>
+														<input type="text" class="form-control text-center loginForm" id="user" name="user" data-ng-change="clearError()"
+														 data-ng-model="user" placeholder="utente" autocomplete="off" required>
+														<span style="color:red" data-ng-show="form.user.$dirty && form.user.$invalid">
+
+
+														</span>
+													</div>
+													<div class="form-group" data-ng-class="{'has-warning': (form.password.$dirty && form.password.$error.required),'has-error': model.hasError}">
+														<label class="sr-only" for="password">Password</label>
+														<input type="password" class="form-control text-center loginForm" id="password" name="password"
+														 data-ng-change="clearError()" data-ng-model="password" placeholder="password" required>
+
+														<span style="color:red" class="help-inline" data-ng-show="model.hasError">{{view.errorMessage}}</span>
+													</div>
+													<div class="form-group">
+														<div class="help-block text-center underlined">
+															<a class="showShadow" href="/adesioni/manageRecuperoDatiRegistrazione.do?adfgenDispatchAction=resetPasswordUtente&org.apache.struts.taglib.html.CANCEL=true&adfgenResetSession=true">
+																<strong>Password Dimenticata ?</strong>
+															</a>
+														</div>
+														<div class="form-group micro-busy" data-cg-busy="{promise:loginPromise,templateUrl:'./views/common/spinnerSmall.html'}">
+															<button type="submit" class="btn btn-lg btn-primario btn-block" data-ng-disabled="checkLogin(form) || disableAccedi">ENTRA</button>
+														</div>
+
+														<div class="help-block text-center">Sei un nuovo utente?
+															<a class="showShadow underlined" href="/opencms/opencms/registrazione.html">
+																<strong> Registrati</strong>
+															</a>
+														</div>
+													</div>
+
+												</form>
+											</div>
+											<div class="col-sm-5">
+												<div class="row">
+													<div class="col-sm-12 voffset3 regular-14 noPaddingright">
+														SPID è il sistema di accesso che consente di utilizzare, con un'identità digitale unica, i servizi online della Pubblica
+														Amministrazione e dei privati accreditati.
+													</div>
+												</div>
+												<div class="row">
+													<div class="col-sm-12">
+														<button type="button" data-ng-click="entraSpid()" style="height: 46px;padding-top:0px;padding-bottom:0px" class="col-sm-12 btn btn-lg colorButtonSpid fontWhite btn-block voffset3">
+															<!-- <img src="/opencms/opencms/immagini/rifacimento_nuovo_portale/spid-icon.png" class="spidIcon" alt="spidIcon"> -->
+															<span class="spidLabel">
+																ENTRA CON SPID
+															</span>
+														</button>
+													</div>
+												</div>
+												<div class="row">
+													<div class="col-sm-12" style="color:red" data-ng-if="errorCodeSpid">
+														{{getSpidCode(errorCodeSpid)}}
+													</div>
+												</div>
+												<div class="col-sm-12 bubble-spid spid-menu" data-ng-show="showSpid">
+													<div class="col-sm-12 text-center borderB nopadding" style="height:40px" data-ng-repeat="item in model.spid">
+														<div class="vertical-align-inside-div">
+															<a data-ng-href="{{item.url}}" id="spid{{item.id}}" href="#">
+																<img class="spidProvider" tabindex="-1" data-ng-src="{{item.icona}}" src="#" alt="icona">
+															</a>
+														</div>
+													</div>
+												</div>
+												<div class="row" style="position:absolute">
+													<div class="col-sm-12 regular-14 underlined" data-ng-class="errorCodeSpid ? 'voffset' : 'voffset2'">
+														<a class="showShadow" href="https://www.spid.gov.it" target="_blank" data-ng-focus="showSpid = false">Maggiori informazioni su SPID</a>
+													</div>
+
+													<div class="col-sm-12 regular-14 underlined" data-ng-class="errorCodeSpid ? 'voffset' : 'voffset2'">
+														<a class="showShadow" href="https://www.spid.gov.it/richiedi-spid" target="_blank">Non hai SPID?</a>
+													</div>
+												</div>
+											</div>
+											<div class="col-sm-2 voffset2" style="height:242px">
+												<div class="vertical-align-inside-div" style="width:62px;background-color:white;z-index:2">
+													Oppure
+												</div>
+												<div class="col-sm-6 borderR" style="height:229px;top:-15px">
+												</div>
+											</div>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+
+					</ul>
+				</li>
+
+				<li>
+					<ul class="nav navbar-nav">
+						<!-- <li class="dropdown">
+	<a href="#" style="padding-top:12px;"><img src="./images/Header/bandiera.png:4f2289cc-798a-11e6-9493-2df343192d3f)</cms:link>">
+	<img src="./images/Header/arrow.png:f8a9b2b3-7989-11e6-afe4-2df343192d3f)</cms:link>" style="padding-left: 9px;"></a>
+	</li> -->
+
+						<li class="dropdown">
+							<a href="" class="dropdown-toggle" style="padding-top: 13px;">
+								<span style="vertical-align:middle">ITA</span>
+								<img src="./images/Header/bandiera.png" alt="Italiano">
+								<!--<img
+								src="./images/Header/arrow.png:f8a9b2b3-7989-11e6-afe4-2df343192d3f)</cms:link>" alt="Espandi"
+								style="padding-left: 9px; padding-top: 0px;">-->
+							</a>
+
+							<!--		<ul class="dropdown-menu" style="width: 47px;right: 9px; min-width: 10px !important;z-index:9999">
+									<li><a href="english/program_en.html" data-ng-click="destroySession()" style="padding-top: 12px;"><img style="width: 35px; height: 23px;"
+										src="./images/Header/bandiera_uk.png" alt="English"></a></li>
+								</ul> -->
+						</li>
+
+						<!-- eng
+							<li class="dropdown"><a href="" class="dropdown-toggle" style="padding-top: 13px;"> <span style="vertical-align:middle">ENG</span> <img
+								src="./images/Header/bandiera_uk.png" alt="English"></a>
+
+								<ul class="dropdown-menu" style="width: 47px;right: 9px; min-width: 10px !important;z-index:9999">
+									<li><a href="index.html" data-ng-click="destroySession()" style="padding-top: 12px;"><img style="width: 35px; height: 23px;"
+										src="./images/Header/bandiera.png" alt="Italiano"></a></li>
+								</ul>
+							</li>  -->
+
+					</ul>
+				</li>
+			</ul>
+
+
+
+		</div>
+	</div>
+</div>
+
+
+<header class="navbar navbar-default my-navbar headerXs" id="navbarsubMenu" data-ng-controller="MenuCtrl">
+
+
+	<div id="backToTop" class="hidden">
+		<button class="btn btn-lg btn-secondario buttonTop" aria-label="buttonTop" title="buttonTop" data-ng-click="toTop()">
+			<span class="glyphicon glyphicon-chevron-up"></span>
+		</button>
+	</div>
+
+	<div class="navbar-header visible-xs visible-sm nav-down subheaderXs">
+		<div class="col-xs-7 hidden-sm padding320 vertical-align-xs" style="z-index:10">
+			<a href="/opencms/opencms/index.html">
+				<!-- <img src="https://evo.acquistinretepa.it/opencms/export/my_template/resources/img/hp/header/logo.svg" alt="Logo AcquistinRetePA" -->
+				 class="img-responsive logo-pos" style="position: relative;max-width:80%">
+			</a>
+		</div>
+
+		<!-- <button type="button" class="navbar-toggle" data-toggle="collapse"
+			data-target=".navbar-ex1-collapse">
+			<span class="sr-only">Espandi barra di navigazione</span> <span
+				class="icon-bar"></span> <span class="icon-bar"></span> <span
+				class="icon-bar"></span>
+		</button> -->
+
+		<div class="column2 hidden-sm">
+			<div id="dl-menu2" class="dl-menuwrapper2">
+				<button class="dl-trigger2" data-ng-click="showSearchXs()">
+					<span id="searchMenuButtonXs" style="font-size:22px" class="glyphicon glyphicon-search fontWhite"></span>
+				</button>
+			</div>
+		</div>
+
+
+
+		<div class="column1 hidden-sm">
+			<div id="dl-menu1" class="dl-menuwrapper1">
+				<button class="dl-trigger1" id="buttonLoginXs" data-ng-click="showLoginXs()" data-ng-if="!model.userEnable">
+					<span id="loginMenuButtonXs" style="font-size:22px" class="glyphicon glyphicon-user fontWhite"></span>
+				</button>
+				<button class="dl-trigger3" data-ng-click="showCruscottoXs()" data-ng-if="model.userEnable">
+					<span id="cruscottoMenuButtonXs" class="col-xs-12 nopadding-xs vertical-align-inside-div" style="letter-spacing: -0.5px;font-size:20px;color:white">{{model.personalInfoSession.personalInfo.nome | limitTo:1}}{{model.personalInfoSession.personalInfo.cognome | limitTo:1}}</span>
+				</button>
+
+				<ul class="dl-menu1">
+
+
+					<!-- <ul id="login-dp" class="dropdown-menu" > -->
+
+
+
+
+				</ul>
+			</div>
+		</div>
+
+		<div class="column visible-sm visible-xs">
+			<div id="dl-menu" class="dl-menuwrapper">
+				<button class="dl-trigger" id="menuXs" data-ng-click="openMenuXs()" style="cursor:pointer">Open Menu</button>
+				<ul class="dl-menu" id="submenuXs">
+					<li>
+						<a href="#">Programma</a>
+						<ul class="dl-submenu">
+							<li>
+								<a href="/opencms/opencms/programma.html">Home Programma</a>
+							</li>
+							<li>
+								<a href="/opencms/opencms/programma_comeFunziona.html">Come Funziona</a>
+							</li>
+							<li>
+								<a href="#">Strumenti</a>
+								<ul class="dl-submenu">
+									<li>
+										<a href="/opencms/opencms/programma_Strumenti-AccordiQuadro.html">Accordi Quadro</a>
+									</li>
+									<li>
+										<a href="/opencms/opencms/programma_Strumenti-Convenzioni.html">Convenzioni</a>
+									</li>
+									<li>
+										<a href="/opencms/opencms/programma_Strumenti-MercatoElettronico.html?title">Mercato Elettronico</a>
+									</li>
+									<li>
+										<a href="/opencms/opencms/programma_Strumenti-SistemaDinamico.html">Sistema Dinamico</a>
+									</li>
+								</ul>
+							</li>
+							<li>
+								<a href="/opencms/opencms/programma_numeri.html">Numeri</a>
+							</li>
+							<li>
+								<a href="/opencms/opencms/programma_progetti-Servizi.html">Progetti e Servizi</a>
+								<ul class="dl-submenu">
+									<li>
+										<a href="/opencms/opencms/programma_progetti-Servizi_FatturazioneElettronica.html">Fatturazione Elettronica</a>
+									</li>
+									<li>
+										<a href="/opencms/opencms/programma_progetti-Servizi_IniziativeAgendaDigitale.html">Iniziative Agenda Digitale</a>
+									</li>
+									<li>
+										<a href="/opencms/opencms/programma_progetti-Servizi_benchmark.html">Prezzi Benchmark</a>
+									</li>
+								</ul>
+							</li>
+							<li>
+								<a href="/opencms/opencms/programma_Questionari.html">Questionari</a>
+								<ul class="dl-submenu">
+									<li>
+										<a href="/opencms/opencms/programma_Questionari-Consultazionidelmercato.html">Consultazion del mercato</a>
+									</li>
+									<li>
+										<a href="/opencms/opencms/programma_Questionari-Previsionideifabbisogni.html">Previsione dei fabbisogni</a>
+									</li>
+								</ul>
+							</li>
+							<li>
+								<a href="/opencms/opencms/programma_acquistiverdi.html">Acquisti Verdi</a>
+							</li>
+						</ul>
+					</li>
+					<li>
+						<a href="#">Catalogo</a>
+						<ul class="dl-submenu">
+							<li>
+								<a href="/opencms/opencms/categoriaProdotti.html">Tutte le aree merceologiche</a>
+							</li>
+						</ul>
+					</li>
+					<li>
+						<a href="#">Iniziative</a>
+						<ul class="dl-submenu">
+							<li>
+								<a href="/opencms/opencms/vetrina_iniziative.html">Tutte le iniziative</a>
+							</li>
+							<li>
+								<a data-ng-href="/opencms/opencms/vetrina_iniziative.html?filter=AQ">Accordi Quadro</a>
+							</li>
+							<li>
+								<a data-ng-href="/opencms/opencms/vetrina_iniziative.html?filter=CO">Convenzioni</a>
+							</li>
+							<li>
+								<a data-ng-href="/opencms/opencms/vetrina_iniziative.html?filter=ME">Mercato Elettronico</a>
+							</li>
+							<li>
+								<a data-ng-href="/opencms/opencms/vetrina_iniziative.html?filter=SD">Sistema Dinamico</a>
+							</li>
+						</ul>
+					</li>
+
+
+					<li>
+						<a href="#">Bandi</a>
+						<ul class="dl-submenu">
+							<li>
+								<a href="/opencms/opencms/vetrina_bandi.html">Tutti i bandi</a>
+							</li>
+							<li>
+								<a data-ng-href="/opencms/opencms/vetrina_bandi.html?filter=AQ">Accordi Quadro</a>
+							</li>
+							<li>
+								<a data-ng-href="/opencms/opencms/vetrina_bandi.html?filter=CO">Convenzioni</a>
+							</li>
+							<li>
+								<a data-ng-href="/opencms/opencms/vetrina_bandi.html?filter=ME">Mercato Elettronico</a>
+							</li>
+							<li>
+								<a data-ng-href="/opencms/opencms/vetrina_bandi.html?filter=SD">Sistema Dinamico</a>
+							</li>
+							<li class="hidden-xs">
+								<a data-ng-href="/opencms/opencms/vetrina_bandi.html?filter=AB">Altri Bandi</a>
+							</li>
+							<li class="hidden-xs">
+								<a data-ng-href="/opencms/opencms/vetrina_bandi.html?filter=RDO">RdO Aperte</a>
+							</li>
+						</ul>
+					</li>
+					<li>
+						<a href="#">Supporto</a>
+						<ul class="dl-submenu">
+							<li>
+								<a class="cursor" data-ng-click="linkSupporto()">Home Supporto</a>
+							</li>
+							<li>
+								<a href="/opencms/opencms/sportelli_in_rete.html">Sportelli in Rete</a>
+							</li>
+							<li>
+								<a href="/opencms/opencms/supporto_Eventi-Formazione.html">Eventi e Formazione</a>
+							</li>
+							<li>
+								<a href="/opencms/opencms/filmati.html">Filmati</a>
+							</li>
+							<li>
+								<a href="/opencms/opencms/supporto_guide.html">Guide</a>
+							</li>
+							<li>
+								<a href="/opencms/opencms/faq.html">FAQ</a>
+							</li>
+							<li>
+								<a href="/opencms/opencms/supporto_contatti.html">Contatti</a>
+							</li>
+						</ul>
+					</li>
+
+				</ul>
+
+			</div>
+			<!-- /dl-menuwrapper -->
+		</div>
+
+	</div>
+
+	<div id="cruscottoXs">
+
+		<div class="dl-menu2 visible-xs borderB bubble-menu-nome cruscottoXs" data-ng-show="model.showCruscottoXs">
+
+			<div class="row voffset4">
+				<a class="col-xs-12 borderB" style="height:45px" href="/opencms/opencms/cruscotto/index.html">
+					<div class="col-xs-2 nopadding ">
+						<!-- <img alt="cruscotto" src="/opencms/opencms/immagini/rifacimento_nuovo_portale/HP/cruscotto.png"> -->
+					</div>
+					<div class="col-xs-10 voffset">
+						<strong>Cruscotto</strong>
+					</div>
+				</a>
+			</div>
+
+			<div class="row voffset3">
+				<div class="col-xs-12 borderB" style="height:45px">
+					<div class="col-xs-2 nopadding">
+						<!-- <img alt="gestioneprofilo" src="/opencms/opencms/immagini/rifacimento_nuovo_portale/HP/profilo.png"> -->
+					</div>
+					<div class="col-xs-10 voffset" data-ng-click="showModalProfiloXs()">
+						<strong>Gestione Profilo</strong>
+					</div>
+				</div>
+			</div>
+
+			<div class="row voffset3">
+				<a class="col-xs-12 borderB" style="height:45px" href="/shres/logout.portal?cambiaprofilo=cambia+ufficio">
+					<div class="col-xs-2 nopadding ">
+						<!-- <img alt="cambiaufficio" src="/opencms/opencms/immagini/rifacimento_nuovo_portale/HP/cambia.png"> -->
+					</div>
+					<div class="col-xs-10 voffset">
+						<strong>Cambia Ufficio</strong>
+					</div>
+
+				</a>
+			</div>
+
+			<div class="row voffset4 margin-bottom-20 nopadding underlined text-center">
+				<a data-ng-href="/shres/logout.portal?user_name={{model.personalInfoSession.personalInfo.username}}&landing_code=WP001" data-ng-click="model.userEnable = false">
+
+					<strong>Esci</strong>
+
+
+				</a>
+			</div>
+		</div>
+
+	</div>
+
+
+	<div class="row visible-xs" data-ng-show="model.showSearchXs">
+		<div class="col-xs-12" id="searchXs">
+			<div class="dl-menu2">
+				<form class="navbar-form" id="headersearchformxs" name="headersearchformxs">
+					<fieldset>
+						<legend class="hide">Ricerca:</legend>
+
+						<div class="col-xs-12 voffset3">
+							<div data-ng-class="((headersearchformxs.inputheaderxs.$invalid && headersearchformxs.inputheaderxs.$dirty && !model.emptyForm) || (headersearchformxs.inputheaderxs.$invalid && model.emptyForm)) ? 'has-warning' : ''"
+							 style="position:relative;width:100%">
+								<label for="inputheaderxs" class="hide">Cerca nel portale</label>
+								<input style="font-size:18px;margin-right:42px" type="text" data-ng-focus="showTypeahead = true" data-ng-blur="showTypeahead = false"
+								 class="search-topbarXs form-control" id="inputheaderxs" autocomplete="off" name="inputheaderxs" data-ng-change="wordCountXs(model.inputheaderxs)"
+								 data-ng-model="model.inputheaderxs" placeholder="cerca nel portale ..." data-ng-required="true">
+								<div style="display:inline">
+									<!-- <img id="lente" data-ng-class=" model.inputheaderxs.length < 2 ? 'opacity65' : '' " src="/opencms/opencms/immagini/rifacimento_nuovo_portale/HP/lente.png" -->
+									 style="cursor:pointer" data-ng-click="searchHeaderXs(model.inputheaderxs)" alt="lente">
+								</div>
+							</div>
+							<div class="col-xs-12 regular-16" style="margin: 0px; padding: 0px;width:325px">
+								<label for="Prodotti" class="radio-inline hide">Prodotti</label>
+								<input type="radio" id="Prodotti" name="Prodotti" data-ng-model="radioSearchXs" value="Prodotti">Prodotti
+								<span data-ng-if="showProductCodes()">
+									<label for="Codici" class="radio-inline hide">Codici Prodotto</label>
+									<input type="radio" style="margin-left:10px" data-ng-model="radioSearchXs" value="Codici"
+									 id="Codici" name="Codici">Codici Prodotto</span>
+								<label for="Info" class="radio-inline hide">Informazioni</label>
+								<input type="radio" style="margin-left:10px" id="Info" data-ng-model="radioSearchXs" value="Info"
+								 name="Info">Informazioni
+							</div>
+						</div>
+					</fieldset>
+				</form>
+			</div>
+		</div>
+	</div>
+
+
+	<div class="row visible-xs" data-ng-show="model.showLoginPanelXs">
+		<div class="dl-menu2 col-xs-12" id="login-dp-xs">
+			<ul class="list-unstyled">
+				<li>
+
+					<!-- spid -->
+					<div class="row">
+						<div class="col-xs-12">
+							<div class="row">
+								<div class="col-xs-12 voffset3 regular-14 noPaddingright">
+									SPID è il sistema di accesso che consente di utilizzare, con un'identità digitale unica, i servizi online della Pubblica
+									Amministrazione e dei privati accreditati.
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-10 col-xs-offset-1">
+									<button style="padding-top:0px;padding-bottom:0px" data-ng-click="entraSpidXs()" data-toggle="modal" data-target="#spidModal"
+									 class="col-xs-12 btn btn-lg colorButtonSpid fontWhite btn-block voffset3">
+										<!-- <img src="/opencms/opencms/immagini/rifacimento_nuovo_portale/spid-icon.png" class="spidIcon" alt="spidIcon"> -->
+										<span class="spidLabel">ENTRA CON SPID</span>
+									</button>
+
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-sm-12 voffset2 regular-14 text-center" style="color:red" data-ng-if="errorCodeSpid">
+									{{getSpidCode(errorCodeSpid)}}
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-12 regular-14 underlined voffset2 text-center-xs">
+									<a href="https://www.spid.gov.it" target="_blank">Maggiori informazioni su SPID</a>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-12 regular-14 underlined voffset2 text-center-xs">
+									<a href="https://www.spid.gov.it/richiedi-spid" target="_blank">Non hai SPID?</a>
+								</div>
+							</div>
+						</div>
+
+
+
+
+					</div>
+
+					<div class="row">
+						<div class="borderB voffset4">
+
+						</div>
+						<div class="col-xs-2 col-xs-offset-5 nopadding text-center-xs regular-14" style="top:-12px;background-color:white">
+							Oppure
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-xs-12">
+							<!-- <div class="text-center regular-14 voffset3">Effettua il <strong>login</strong> per accedere al <strong>catalogo</strong> completo delle offerte</div> -->
+							<form name="formXS" class="form margin-top-20" method="post" data-ng-submit="sedieList()" accept-charset="UTF-8" id="login-nav-xs"
+							 novalidate>
+
+								<input type="hidden" name="action" id="actionIdXs" value="login" data-ng-model="action">
+
+								<input type="hidden" name="p_done_url" id="p_done_url2" data-ng-model="p_done_url" value="/opencms/opencms/main/areapersonale/homepageRedirect.jsp">
+
+								<input type="hidden" name="successurlXs" id="successurlXs2" data-ng-model="successurl" value="https://evo.acquistinretepa.it/shres/internal/userProfile">
+
+								<input type="hidden" name="cortesiaVis" id="cortesiaVisXs" data-ng-model="cortesiaVis" value="">
+
+								<input type="hidden" name="cortesia_url" id="cortesia_urlXs" data-ng-model="cortesia_url" value="">
+								<div class="form-group" data-ng-class="{'has-warning': (formXS.userXS.$dirty && formXS.userXS.$invalid),'has-error': model.hasError}">
+									<label class="sr-only" for="userXS">User</label>
+									<input type="text" class="form-control text-center loginForm" id="userXS" name="userXS" data-ng-change="clearError()"
+									 data-ng-model="model.userXS" placeholder="utente" autocomplete="off" required>
+									<span style="color:red" data-ng-show="formXS.userXS.$dirty && formXS.userXS.$invalid">
+
+
+									</span>
+								</div>
+								<div class="form-group" data-ng-class="{'has-warning': (formXS.passwordXS.$dirty && formXS.passwordXS.$error.required),'has-error': model.hasError}">
+									<label class="sr-only" for="passwordXS">Password</label>
+									<input type="password" class="form-control text-center loginForm" id="passwordXS" name="passwordXS"
+									 data-ng-change="clearError()" data-ng-model="model.passwordXS" placeholder="password" required>
+
+									<span style="color:red" class="help-inline" data-ng-show="model.hasError">Username o password errate</span>
+								</div>
+								<div class="form-group">
+									<div class="help-block text-center underlined">
+										<a href="/adesioni/manageRecuperoDatiRegistrazione.do?adfgenDispatchAction=resetPasswordUtente&org.apache.struts.taglib.html.CANCEL=true&adfgenResetSession=true">
+											<strong>Password Dimenticata ?</strong>
+										</a>
+									</div>
+									<div class="form-group micro-busy" data-cg-busy="{promise:loginPromiseXs,templateUrl:'./views/common/spinnerSmall.html'}">
+										<button type="submit" class="btn btn-lg bnd-colorButtonBlue fontWhite btn-block" data-ng-disabled="checkLogin(formXS)">ENTRA</button>
+									</div>
+
+									<div class="help-block text-center">Sei un nuovo utente?
+										<a class="underlined" href="/opencms/opencms/registrazione.html">
+											<strong> Registrati</strong>
+										</a>
+									</div>
+								</div>
+
+							</form>
+						</div>
+					</div>
+				</li>
+			</ul>
+
+		</div>
+	</div>
+
+	<div class="collapse navbar-collapse navbar-ex1-collapse menuPrincipale">
+		<div class="container-fluid">
+
+			<!--	<div
+				class="col-sm-4 col-sm-offset-6 visible-sm hidden-md hidden-xs"
+				ng-show="model.showSearch"
+				style="font-size: small; position: absolute">
+				<form class="navbar-form" role="form"
+					ng-mouseleave="model.showSearch = !model.showSearch" id="headersearchform" name="headersearchform">
+					<fieldset>
+					<legend class="hide">Ricerca:</legend>
+
+					<div class=" inputsearch-pos-sm">
+					<div data-ng-class="((headersearchform.inputheader.$invalid && headersearchform.inputheader.$dirty && !model.emptyForm) || (headersearchform.inputheader.$invalid && model.emptyForm)) ? 'has-warning' : ''">
+						<label for="inputheader" class="hide">Cerca nel portale</label>
+						<input type="text" class="input-group input search-topbar form-control" id="inputheader" name="inputheader" data-ng-model="model.inputheader"
+							placeholder="Cerca nel portale" style="width:295px;padding-left: 10px" data-ng-class="model.userEnable ? '' : 'voffset3'" data-ng-required="true"><br>
+					</div>
+						<div class="col-sm-12" data-ng-if="model.userEnable" style="margin: 0px; padding: 0px;width:295px">
+
+								<label for="Prodotti" class="radio-inline hide">Prodotti</label><input type="radio" id="Prodotti"
+									name="optradio" checked>Prodotti
+								 <label for="Codici" class="radio-inline hide">Codici Prodotto</label> <input type="radio" style="margin-left:10px" id="Codici"
+									name="optradio">Codici Prodotto
+								 <label for="Info" class="radio-inline hide">Informazioni</label> <input type="radio" style="margin-left:10px" id="Info"
+									name="optradio">Informazioni
+						</div>
+
+					</div>
+					</fieldset>
+				</form>
+			</div> -->
+
+
+			<ul class="nav navbar-nav navbar-left" style="margin-top: 10px">
+				<li>
+					<a href="/opencms/opencms/index.html" style="padding-left:0px" id="home_link">
+						<!-- <img src="https://evo.acquistinretepa.it/opencms/export/my_template/resources/img/hp/header/logo.svg" alt="Logo AcquistinRetePA"
+						 class="img-responsive logo-pos" style="position: relative;width:240px;max-width:100%"> -->
+					</a>
+				</li>
+			</ul>
+
+
+
+
+			<div class="nav navbar-nav navbar-right" style="margin-top: 15px">
+
+				<!--	<div class="col-xs-12 visible-xs" data-ng-show="model.showSearch"
+					style="font-size: small; position: absolute">
+					<form class="navbar-form"
+						ng-mouseleave="model.showSearch = !model.showSearch">
+						<fieldset>
+					 		<legend class="hide">Ricerca:</legend>
+							<label for="cercaPortaleMob" class="hide">Cerca nel portale</label>
+								<div class="inputsearch-pos-sm">
+									<input type="text" id="cercaPortaleMob" class="input-group input search-topbar"
+										placeholder="Cerca nel portale" style="padding-left: 10px">
+
+									<a href="#" data-ng-click="model.showSearch = !model.showSearch"
+										ng-show="model.showSearch" style="text-decoration: none;"></a>
+									<br> <label for="ProdottiMob" class="radio-inline hide">Prodotti</label>
+									<input type="radio" id="ProdottiMob" name="optradio">Prodotti
+								 <label for="CodiciMob" class="radio-inline hide">Codici Prodotto</label>
+								 <input type="radio" style="margin-left:10px" id="CodiciMob" name="optradio" checked>Codici Prodotto
+								 <label for="InfoMob" class="radio-inline hide">Informazioni</label>
+								 <input type="radio" style="margin-left:10px" id="InfoMob" name="optradio">Informazioni
+
+								</div>
+						</fieldset>
+					</form>
+				</div> -->
+
+
+				<ul class="menu-hp hidden-sm list-unstyled">
+
+
+					<li class="dropdown right-margin-header-menu" data-ng-show="!model.showSearch">
+						<a href="programma.html" class="dropdown-toggle regular-22 regular-md headerHover" data-ng-class="menuClassHeader('Programma')">Programma</a>
+						<!-- <data-ng-include src="'/opencms/opencms/system/modules/my.template/template/menu_programma.jsp'"></data-ng-include> -->
+					</li>
+					<li class="dropdown right-margin-header-menu" data-ng-show="!model.showSearch">
+						<a href="categoriaProdotti.html" class="dropdown-toggle regular-22 regular-md headerHover" data-ng-class="menuClassHeader('Catalogo')">Catalogo</a>
+						<!-- <data-ng-include src="'/opencms/opencms/system/modules/my.template/template/menu_catalogo.jsp'"></data-ng-include> -->
+					</li>
+					<li class="dropdown right-margin-header-menu cursor" data-ng-show="!model.showSearch">
+						<a data-ng-click="reload('vetrina_iniziative.html')" class="dropdown-toggle regular-22 regular-md headerHover" href="#"
+						 data-ng-class="menuClassHeader('vetrina iniziative')">Iniziative</a>
+						<ul class="dropdown-menu bubble-menu" style="font-size: 16px">
+							<li>
+								<a data-ng-click="reload('vetrina_iniziative.html')" href="#" class="divider-bottom">Tutte le Iniziative</a>
+							</li>
+							<li>
+								<a class="divider-bottom" data-ng-href="/opencms/opencms/vetrina_iniziative.html?filter=AQ">Accordi Quadro</a>
+							</li>
+							<li>
+								<a class="divider-bottom" data-ng-href="/opencms/opencms/vetrina_iniziative.html?filter=CO">Convenzioni</a>
+							</li>
+							<li>
+								<a class="divider-bottom" data-ng-href="/opencms/opencms/vetrina_iniziative.html?filter=ME">Mercato Elettronico
+								</a>
+							</li>
+							<li>
+								<a class="divider-last" data-ng-href="/opencms/opencms/vetrina_iniziative.html?filter=SD">Sistema Dinamico</a>
+							</li>
+						</ul>
+					</li>
+					<li class="dropdown right-margin-header-menu cursor" data-ng-show="!model.showSearch">
+						<a href="#" data-ng-click="reload('vetrina_bandi.html')" class="dropdown-toggle regular-22 regular-md headerHover" data-ng-class="menuClassHeader('vetrina bandi')">Bandi</a>
+						<ul class="dropdown-menu bubble-menu" style="font-size: 16px">
+							<li>
+								<a href="#" data-ng-click="reload('vetrina_bandi.html')" class="divider-bottom">Tutti i Bandi</a>
+							</li>
+							<li>
+								<a class="divider-bottom" data-ng-href="/opencms/opencms/vetrina_bandi.html?filter=AQ">Accordi Quadro</a>
+							</li>
+							<li>
+								<a class="divider-bottom" data-ng-href="/opencms/opencms/vetrina_bandi.html?filter=CO">Convenzioni</a>
+							</li>
+							<li>
+								<a class="divider-bottom" data-ng-href="/opencms/opencms/vetrina_bandi.html?filter=ME">Mercato Elettronico
+								</a>
+							</li>
+							<li>
+								<a class="divider-bottom" data-ng-href="/opencms/opencms/vetrina_bandi.html?filter=SD">Sistema Dinamico</a>
+							</li>
+							<li>
+								<a class="divider-bottom" data-ng-href="/opencms/opencms/vetrina_bandi.html?filter=AB">Altri Bandi</a>
+							</li>
+							<li>
+								<a class="divider-last" data-ng-href="/opencms/opencms/vetrina_bandi.html?filter=RDO">RdO Aperte</a>
+							</li>
+						</ul>
+					</li>
+					<li class="dropdown right-margin-header-menu" data-ng-show="!model.showSearch">
+						<a data-ng-click="linkSupporto()" href="#" class="cursor dropdown-toggle regular-22 regular-md headerHover" data-ng-class="menuClassHeader('supporto')">Supporto</a>
+						<!-- <data-ng-include src="'/opencms/opencms/system/modules/my.template/template/menu_supporto.jsp'"></data-ng-include> -->
+					</li>
+
+				</ul>
+
+				<!--	<li class="hidden-lg visible-sm hidden-xs hidden-md" style="display:inline-block;padding-top:5px" data-ng-mouseover="model.showSearch = true">
+					<a href="#" title="Cerca" data-ng-click="searchHeader()"
+					ng-mouseover="model.showSearch = true"><span class="glyphicon glyphicon-search"></span></a>
+				</li> -->
+
+
+
+				<ul class="bottom-margin-0">
+
+
+					<li class="dropdown hidden-xs" style="display:inline-block">
+						<form class="navbar-form" id="headersearchformlg" name="headersearchformlg">
+							<fieldset>
+								<legend class="hide">Ricerca:</legend>
+
+								<div class="input-group input inputsearch-pos-sm">
+									<div data-ng-class="((headersearchformlg.inputheaderlg.$invalid && headersearchformlg.inputheaderlg.$dirty && !model.emptyForm) || (headersearchformlg.inputheaderlg.$invalid && model.emptyForm)) ? 'has-warning' : ''"
+									 style="position:relative;width:100%">
+										<label for="inputheaderlg" class="hide">Cerca nel portale</label>
+										<input style="font-size:18px" type="text" data-ng-focus="showTypeahead = true" data-ng-blur="showTypeahead = false" class="paddingright-sm search-topbar form-control"
+										 id="inputheaderlg" autocomplete="off" name="inputheaderlg" data-ng-model="model.inputheaderlg" data-ng-change="wordCount(model.inputheaderlg)"
+										 placeholder="cerca nel portale ..." data-ng-required="true" data-ng-keydown="keypressInBox($event)">
+									</div>
+									<div style="display:inline">
+										<!-- <img id="lenteLg" draggable="false" data-ng-class="model.inputheaderlg.length < 2 ? 'opacity65' : '' " src="/opencms/opencms/immagini/rifacimento_nuovo_portale/HP/lente.png"
+										 style="cursor:pointer" alt="lente" data-ng-click="searchProdotti(model.inputheaderlg)"> -->
+									</div>
+
+									<div class="headerdropdown" data-ng-show="model.inputheaderlg.length >= 2 && showTypeahead">
+										<!-- <a href="#" data-ng-click="model.showSearch = !model.showSearch"
+												ng-show="model.showSearch" style="text-decoration: none;"> </a>
+												dropdown-menu headerdropdown -->
+										<div class="row typeahead">
+											<div class="col-sm-12 cursor voffset typeahead-row" data-ng-class="{'typeahead-row-selected': view.searchSlots[0].selected}"
+											 data-ng-mousedown="searchProdotti(model.inputheaderlg)">
+												{{model.inputheaderlg}}
+												<span style="color:#bbb"> in prodotti</span>
+												<span class="pull-right">
+													<!-- <img style="margin-bottom:3px" alt="vai" src="/opencms/opencms/immagini/rifacimento_nuovo_portale/HP/frecciatype.png"> -->
+												</span>
+											</div>
+											<div class="col-sm-12 cursor typeahead-row" data-ng-class="{'typeahead-row-selected': view.searchSlots[1].selected}" data-ng-if="showProductCodes()"
+											 data-ng-mousedown="searchCodice(model.inputheaderlg)">
+												{{model.inputheaderlg}}
+												<span style="color:#bbb"> in codici prodotto</span>
+												<span class="pull-right">
+													<!-- <img style="margin-bottom:3px" alt="vai" src="/opencms/opencms/immagini/rifacimento_nuovo_portale/HP/frecciatype.png"> -->
+												</span>
+											</div>
+											<div class="col-sm-12 cursor typeahead-row" data-ng-class="{'typeahead-row-selected': view.searchSlots[2].selected}" style="margin-bottom:2px"
+											 data-ng-mousedown="searchDocs(model.inputheaderlg)">
+												{{model.inputheaderlg}}
+												<span style="color:#bbb"> in informazioni</span>
+												<span class="pull-right">
+													<!-- <img style="margin-bottom:3px" alt="vai" src="/opencms/opencms/immagini/rifacimento_nuovo_portale/HP/frecciatype.png"> -->
+												</span>
+											</div>
+										</div>
+
+									</div>
+
+
+								</div>
+							</fieldset>
+						</form>
+					</li>
+				</ul>
+			</div>
+			<!-- MENU A DISCESA -->
+
+		</div>
+	</div>
+</header>
+
+<script type="text/javascript">
+
+	function closeMenu() {
+		$('.dropdown-menu').stop(true, true).slideUp("fast");
+		$('.dropdown-menu').toggleClass('open');
+	}
+
+	$(document).ready(function () {
+		$(".dropdown").hover(
+			function () {
+				$('.dropdown-menu', this).stop(true, true).slideDown("fast");
+				$(this).toggleClass('open');
+			},
+			function () {
+				$('.dropdown-menu', this).stop(true, true).slideUp("fast");
+				$(this).toggleClass('open');
+			}
+		);
+
+		/* $(".divider-last").blur(
+			function() {
+				console.log("Blur Triggered");
+				$('.dropdown-menu', this.parentElement.parentElement.parentElement).stop( true, true ).slideUp("fast");
+				$(this.parentElement.parentElement.parentElement).removeClass('open');
+			}
+		); */
+
+		$("#inputheaderlg").focus(
+			function () {
+				closeMenu();
+			}
+		);
+
+		$("#accedi").focus(
+			function () {
+				closeMenu();
+			}
+		);
+
+		$("#home_link").focus(
+			function () {
+				closeMenu();
+			}
+		);
+
+		$("#header_chart").focus(
+			function () {
+				closeMenu();
+			}
+		);
+
+		$("#header_messages").focus(
+			function () {
+				closeMenu();
+			}
+		);
+
+		$("#go_to_mef_link").focus(
+			function () {
+				closeMenu();
+			}
+		);
+
+		$(".dropdown-toggle").focus(
+			function () {
+				//console.log("Focus Triggered");
+				$('.dropdown-menu').stop(true, true).slideUp("fast");
+				$('.dropdown-menu').toggleClass('open');
+				$('.dropdown-menu', this.parentElement).stop(true, true).slideDown("fast");
+				$(this).toggleClass('open');
+				/*var menuLinkColl = this.parentElement.children[this.parentElement.children.length - 1].children
+				var lastMenuLink = menuLinkColl[menuLinkColl.length - 1].children[0];
+				var theMenu = this.nextElementSibling; */
+				/*lastMenuLink.blur(
+					function() {
+						console.log("Blur Triggered");
+						theMenu.stop(true, true).slideUp("fast");
+						theMenu.toggleClass('open');
+					}
+				); */
+			}
+		);
+
+
+		/* $(".dropdown-toggle").blur(
+			function() {
+				console.log("Blur Triggered");
+				$('.dropdown-menu', this.parentElement).stop( true, true ).slideUp("fast");
+				$(this).toggleClass('open');
+			}
+		); */
+
+		$('.nav li:has(ul)').doubleTapToGo();
+	});
+</script>

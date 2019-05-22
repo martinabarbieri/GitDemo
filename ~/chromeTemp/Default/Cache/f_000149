@@ -1,0 +1,1091 @@
+angular.module('eprocApp').factory('callHttpFactory', ['$http', '$httpParamSerializerJQLike', '$q', 'EprocAAW', function($http, $httpParamSerializerJQLike, $q, EprocAAW) {
+
+  const HEADERJSON_FLAG = 1 // 1 for DEV; 2 for EVO
+  const headersJSON_dev = {
+    'Content-Type': 'application/json',
+    'Accept-Language': 'it/It',
+    'Connection': 'keep-alive',
+    'Accept': 'application/xml, application/json'
+  }
+  const headersJSON_evo = {
+    'Content-Type': 'application/json',
+    'Accept-Language': 'it/It',
+    'Connection': 'keep-alive',
+    'Accept': 'application/xml, application/json'
+  }
+
+  const headersJSON_aaw = {
+    'Content-Type': 'application/json',
+    'Accept-Language': 'it/It',
+    'Connection': 'keep-alive',
+    'Accept': 'application/xml, application/json'
+  }
+  const headersJSON = HEADERJSON_FLAG == 1 ? headersJSON_dev : headersJSON_evo
+
+  const headersParams = {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'Accept-Language': 'it/It',
+    'Connection': 'keep-alive',
+    'Accept': 'application/xml, application/json'
+  }
+
+  return {
+
+    isDev: function() {
+      return HEADERJSON_FLAG == 1 ? true : false
+    },
+
+    paramsAaw: function(url, params) {
+      let deferred = $q.defer();
+
+      // callback
+      let callback = function(input) {
+        EprocAAW.valutazioneResult(input, deferred);
+      };
+
+      // request
+      var paramsRequest = {
+        "uri": url,
+        "method": "POST",
+        "input": $httpParamSerializerJQLike(params),
+        "headers": headersParams,
+        "callback": callback
+      }
+
+      EprocAAW.callService(paramsRequest, true);
+      return deferred.promise.then(function(response) {
+        if (response.result.exitCode == "200") {
+          return response.payload
+        } else {
+          return null
+        }
+      })
+    },
+
+    paramsRawAaw: function(url, params) {
+      let deferred = $q.defer();
+
+      // callback
+      let callback = function(input) {
+        EprocAAW.valutazioneResult(input, deferred);
+      };
+
+      // request
+      let paramsRequest = {
+        "uri": url,
+        "method": "POST",
+        "input": $httpParamSerializerJQLike(params),
+        "headers": headersParams,
+        "callback": callback
+      }
+
+      EprocAAW.callService(paramsRequest, true);
+      return deferred.promise
+    },
+
+    jsonAaw: function(url, data) {
+      let deferred = $q.defer();
+
+      // callback
+      let callback = function(input) {
+        EprocAAW.valutazioneResult(input, deferred);
+      };
+
+      // request
+      let jsonRequest = {
+        "uri": url,
+        "method": "POST",
+        "input": data,
+        "headers": headersJSON_aaw,
+        "callback": callback
+      }
+
+      EprocAAW.callService(jsonRequest, true);
+      return deferred.promise.then(function(response) {
+        if (response.result.exitCode == "200") {
+          return response.payload
+        } else {
+          return null
+        }
+      })
+    },
+
+    jsonRawAaw: function(url, data) {
+      let deferred = $q.defer();
+
+      // callback
+      let callback = function(input) {
+        EprocAAW.valutazioneResult(input, deferred);
+      };
+
+      // request
+      let jsonRequest = {
+        "uri": url,
+        "method": "POST",
+        "input": data,
+        "headers": headersJSON_aaw,
+        "callback": callback
+      }
+
+      EprocAAW.callService(jsonRequest, true);
+      return deferred.promise
+    },
+
+    params: function(url, params) {
+      return $http({
+        method: "POST",
+        url: url,
+        headers: headersParams,
+        data: $httpParamSerializerJQLike(params)
+      }).then(function(response) {
+        if (response.data.result.exitCode == "200") {
+          return response.data.payload
+        } else {
+          return null
+        }
+      })
+    },
+
+    paramsRaw: function(url, params) {
+      return $http({
+        method: "POST",
+        url: url,
+        headers: headersParams,
+        data: $httpParamSerializerJQLike(params)
+      })
+    },
+
+    json: function(url, data) {
+      let deferred = $q.defer();
+
+      // callback
+      let callback = function(input) {
+        EprocAAW.valutazioneResult(input, deferred);
+      };
+
+      // request
+      let jsonRequest = {
+        "uri": url,
+        "method": "POST",
+        "input": data,
+        "headers": headersJSON,
+        "callback": callback
+      }
+
+      EprocAAW.callService(jsonRequest, true);
+      return deferred.promise.then(function(response) {
+        if (response.result.exitCode == "200") {
+          return response.payload
+        } else {
+          return null
+        }
+      })
+    },
+
+    jsonRaw: function(url, data) {
+      let deferred = $q.defer();
+
+      let jsonRequest = {
+        "uri": url,
+        "method": "POST",
+        "input": data,
+        "headers": headersJSON,
+        "callback": function(response) {
+          return EprocAAW.valutazioneResult(response, deferred)
+        }
+      }
+
+      EprocAAW.callService(jsonRequest, true);
+
+      return deferred.promise
+    },
+
+
+    esterna: function(url) {
+      return $http({
+        method: "GET",
+        url: url,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept-Language': 'it/It',
+          'Connection': 'keep-alive',
+          'Accept': 'application/xml, application/json'
+        }
+      }).then(function(response) {
+        if (response.data.result.exitCode == "200") {
+          return response.data.payload
+        }
+      })
+    },
+
+    pdf: function(url) {
+      return $http({
+        method: "GET",
+        url: url,
+      })
+    },
+
+    valida: function(url, data) {
+      return $http({
+        method: "POST",
+        url: url,
+        headers: headersJSON,
+        data: data
+      }).then(function(response) {
+        return response;
+      })
+    },
+
+    fileUpload: function(url, data) {
+      return $http.post(url + "/upload", data, {
+        transformRequest: angular.identity,
+        headers: {
+          'Content-Type': undefined
+        }
+      }).then(function(response) {
+        return response;
+      })
+    },
+
+    fileDownload: function(url, data) {
+      return $http({
+        method: "GET",
+        url: url + "/file/" + data,
+      }).then(function() {
+        location.href = url + "/file/" + data;
+      })
+    },
+
+    fileRemove: function(url, data) {
+      return $http({
+        method: "GET",
+        url: url + "/remove/" + data,
+      })
+    }
+
+  }
+}])
+
+
+angular.module('eprocApp').factory('navHelperService', function() {
+  let data = null;
+  return {
+    setData: function(data) {
+      this.data = data;
+    },
+    getData: function() {
+      return this.data;
+    }
+  }
+})
+
+angular.module('eprocApp').service('codService', ['$q', 'callHttpFactory', 'urlService', function($q, callHttpFactory, urlService) {
+
+  const calledObj = {}
+
+  const calledLst = {}
+
+  const codDev = {
+    TIPO_STRUMENTO: [{
+        "label": "Convenzioni",
+        "valore": "CONVENZIONI",
+      },
+      {
+        "label": "Bando MEPA",
+        "valore": "MEPA",
+      },
+      {
+        "label": "Accordi quadro",
+        "valore": "ACCORDI_QUADRO",
+      },
+      {
+        "label": "Sistema dinamico",
+        "valore": "SDAPA",
+      }
+    ],
+    TIPO_OBBLIGO: [{
+        "label": "Obbligatorio",
+        "valore": "Obbligatorio"
+      },
+      {
+        "label": "Obbligatorio e Multiplo",
+        "valore": "Obbligatorio_e_Multiplo"
+      },
+      {
+        "label": "Facoltativo",
+        "valore": "Facoltativo"
+      },
+      {
+        "label": "Facoltativo e Multiplo",
+        "valore": "Facoltativo_e_Multiplo"
+      }
+    ],
+    TIPO_REQUISITO: [{
+      "label": "Domanda semplice",
+      "valore": "DOMANDA_SEMPLICE"
+    }, {
+      "label": "Titolo",
+      "valore": "TITOLO"
+    }],
+    TIPO_REGISTRO: [{
+        "label": "Documentazione",
+        "valore": "DOCUMENTAZIONE"
+      },
+      {
+        "label": "Risposta",
+        "valore": "RISPOSTA"
+      },
+      {
+        "label": "Stipula",
+        "valore": "STIPULA"
+      },
+      {
+        "label": "Comunicazione",
+        "valore": "COMUNICAZIONE"
+      },
+      {
+        "label": "Chiarimento",
+        "valore": "CHIARIMENTO"
+      }
+    ],
+    TIPO_RICHIESTA: [{
+        "label": "DOMANDA ABILITAZIONE",
+        "valore": "DOMANDA_ABILITAZIONE"
+      },
+      {
+        "label": "AMMINISTRATIVA",
+        "valore": "AMMINISTRATIVA"
+      }
+    ],
+    TIPO_FORMATO: [{
+        "label": "Numerico",
+        "valore": "NUMERICO"
+      },
+      {
+        "label": "Alfanumerico",
+        "valore": "ALFANUMERICO"
+      },
+      {
+        "label": "Data",
+        "valore": "DATA"
+      }
+    ],
+    TIPO_RISPOSTA: [{
+        "label": "Invio Tradizionale",
+        "valore": "Invio_Tradizionale"
+      },
+      {
+        "label": "Invio Telematico",
+        "valore": "Invio_Telematico"
+      },
+      {
+        "label": "Invio Telematico con firma digitale",
+        "valore": "Invio_Telematico_con_firma_digitale"
+      },
+      {
+        "label": "Invio tradizionale o Telematico",
+        "valore": "Invio_tradizionale_o_Telematico"
+      },
+      {
+        "label": "Invio tradizionale o Telematico con firma digitale",
+        "valore": "Invio_tradizionale_o_Telematico_con_firma_digitale"
+      }
+    ],
+    TIPO_DIPENDENZA: [{
+        "label": "Visibilità",
+        "valore": "VISIBILITA",
+      },
+      {
+        "label": "Stampabilità",
+        "valore": "STAMPABILITA",
+      },
+      {
+        "label": "Testo Output",
+        "valore": "TESTO_OUTPUT",
+      },
+      {
+        "label": "Validazione Correlata",
+        "valore": "VALIDAZIONE_CORRELATA",
+      },
+      {
+        "label": "Validazione Diretta",
+        "valore": "VALIDAZIONE_DIRETTA",
+      },
+      {
+        "label": "Regola Accesso",
+        "valore": "REGOLA_ACCESSO",
+      },
+      {
+        "label": "Percorso Netto",
+        "valore": "PERCORSO_NETTO",
+      }
+    ],
+    MODULO_SORGENTE: [{
+        "type": "OutputCodiceValore",
+        "tipo": "MODULO_SORGENTE",
+        "valore": "BANDO",
+        "label": "Bando",
+        "descrizione": "Bando"
+      },
+      {
+        "type": "OutputCodiceValore",
+        "tipo": "MODULO_SORGENTE",
+        "valore": "GARA",
+        "label": "Gara",
+        "descrizione": "Gara"
+      }
+    ],
+    TIPO_VERSAMENTO: [{
+        "label": "Bando MEPA",
+        "valore": "BANDO_MEPA",
+      },
+      {
+        "label": "Bando SDAPA",
+        "valore": "BANDO_SDAPA",
+      },
+      {
+        "label": "Istituzione AQ",
+        "valore": "ISTITUZIONE_AQ",
+      },
+      {
+        "label": "Istituzione Convenzione",
+        "valore": "ISTITUZIONE_CONVENZIONE",
+      },
+      {
+        "label": "Gara ASP",
+        "valore": "GARA_ASP",
+      },
+      {
+        "label": "Appalto Specifico SDA",
+        "valore": "APPALTO_SPECIFICO_SDA",
+      },
+      {
+        "label": "RdO MEPA",
+        "valore": "RDO_MEPA",
+      },
+      {
+        "label": "Trattative Dirette",
+        "valore": "TRATTATIVE_DIRETTE",
+      },
+      {
+        "label": "Ordini di Acquisto",
+        "valore": "ODA",
+      },
+      {
+        "label": "Appalto Specifico AQ",
+        "valore": "APPALTO_SPECIFICO_AQ",
+      },
+      {
+        "label": "Gara Busta Chiusa",
+        "valore": "GARA_BUSTA_CHIUSA",
+      }
+    ],
+    TIPO_NEGOZIAZIONE: [{
+        "label": "Amministrativa convenzione gara",
+        "valore": "AMMINISTRATIVA_CONVENZIONE_GARA",
+      },
+      {
+        "label": "Facoltativa convenzione gara",
+        "valore": "FACOLTATIVA_CONVENZIONE_GARA",
+      },
+      {
+        "label": "Generica convenzione gara",
+        "valore": "GENERICA_CONVENZIONE_GARA",
+      },
+      {
+        "label": "Chiarimenti convenzione gara",
+        "valore": "CHIARIMENTI_CONVENZIONE_GARA",
+      },
+      {
+        "label": "Comunicazioni convenzione gara",
+        "valore": "COMUNICAZIONI_CONVENZIONE_GARA",
+      },
+      {
+        "label": "Stipula convenzione gara",
+        "valore": "STIPULA_CONVENZIONE_GARA",
+      },
+      {
+        "label": "Amministrativa delega gara",
+        "valore": "AMMINISTRATIVA_DELEGA_GARA",
+      },
+      {
+        "label": "Facoltativa delega gara",
+        "valore": "FACOLTATIVA_DELEGA_GARA",
+      },
+      {
+        "label": "Generica delega gara",
+        "valore": "GENERICA_DELEGA_GARA",
+      },
+      {
+        "label": "Chiarimenti delega gara",
+        "valore": "CHIARIMENTI_DELEGA_GARA",
+      },
+      {
+        "label": "Comunicazioni delega gara",
+        "valore": "COMUNICAZIONI_DELEGA_GARA",
+      },
+      {
+        "label": "Stipula delega gara",
+        "valore": "STIPULA_DELEGA_GARA",
+      },
+      {
+        "label": "Amministrativa gara ASP",
+        "valore": "AMMINISTRATIVA_GARA_ASP",
+      },
+      {
+        "label": "Facoltativa gara ASP",
+        "valore": "FACOLTATIVA_GARA_ASP",
+      },
+      {
+        "label": "Generica gara ASP",
+        "valore": "GENERICA_GARA_ASP",
+      },
+      {
+        "label": "Chiarimenti gara ASP",
+        "valore": "CHIARIMENTI_GARA_ASP",
+      },
+      {
+        "label": "Comunicazioni gara ASP",
+        "valore": "COMUNICAZIONI_GARA_ASP",
+      },
+      {
+        "label": "Stipula gara ASP",
+        "valore": "STIPULA_GARA_ASP",
+      },
+      {
+        "label": "Amministrativa appalto specifico AQ",
+        "valore": "AMMINISTRATIVA_APPALTO_SPECIFICO_AQ",
+      },
+      {
+        "label": "Facoltativa appalto specifico AQ",
+        "valore": "FACOLTATIVA_APPALTO_SPECIFICO_AQ",
+      },
+      {
+        "label": "Generica appalto specifico AQ",
+        "valore": "GENERICA_APPALTO_SPECIFICO_AQ",
+      },
+      {
+        "label": "Chiarimenti appalto specifico AQ",
+        "valore": "CHIARIMENTI_APPALTO_SPECIFICO_AQ",
+      },
+      {
+        "label": "Comunicazioni appalto specifico AQ",
+        "valore": "COMUNICAZIONI_APPALTO_SPECIFICO_AQ",
+      },
+      {
+        "label": "Stipula appalto specifico AQ",
+        "valore": "STIPULA_APPALTO_SPECIFICO_AQ",
+      },
+      {
+        "label": "Amministrativa bando SDAPA",
+        "valore": "AMMINISTRATIVA_BANDO_SDAPA",
+      },
+      {
+        "label": "Tecnica bando SDAPA",
+        "valore": "TECNICA_BANDO_SDAPA",
+      },
+      {
+        "label": "Economica bando SDAPA",
+        "valore": "ECONOMICA_BANDO_SDAPA",
+      },
+      {
+        "label": "Facoltativa bando SDAPA",
+        "valore": "FACOLTATIVA_BANDO_SDAPA",
+      },
+      {
+        "label": "Generica bando SDAPA",
+        "valore": "GENERICA_BANDO_SDAPA",
+      },
+      {
+        "label": "Stipula bando SDAPA",
+        "valore": "STIPULA_BANDO_SDAPA",
+      },
+      {
+        "label": "Chiarimenti bando SDAPA",
+        "valore": "CHIARIMENTI_BANDO_SDAPA",
+      },
+      {
+        "label": "Comunicazioni bando SDAPA",
+        "valore": "COMUNICAZIONI_BAND_SDAPA",
+      },
+      {
+        "label": "Richieste bando SDAPA",
+        "valore": "RICHIESTE_BANDO_SDAPA",
+      },
+      {
+        "label": "Amministrativa bando MEPA",
+        "valore": "AMMINISTRATIVA_BANDO_MEPA",
+      },
+      {
+        "label": "Tecnica bando MEPA",
+        "valore": "TECNICA_BANDO_MEPA",
+      },
+      {
+        "label": "Economica bando MEPA",
+        "valore": "ECONOMICA_BANDO_MEPA",
+      },
+      {
+        "label": "Facoltativa bando MEPA",
+        "valore": "FACOLTATIVA_BANDO_MEPA",
+      },
+      {
+        "label": "Generica bando MEPA",
+        "valore": "GENERICA_BANDO_MEPA",
+      },
+      {
+        "label": "Stipula bando MEPA",
+        "valore": "STIPULA_BANDO_MEPA",
+      },
+      {
+        "label": "Chiarimenti bando MEPA",
+        "valore": "CHIARIMENTI_BANDO_MEPA",
+      },
+      {
+        "label": "Comunicazioni bando MEPA",
+        "valore": "COMUNICAZIONI_BAND_MEPA",
+      },
+      {
+        "label": "Richieste bando MEPA",
+        "valore": "RICHIESTE_BANDO_MEPA"
+      }
+    ],
+    CATEGORIA_MERCEOLOGICA: [{
+        "label": "Alimenti, ristorazioni e buoni pasto",
+        "valore": "ALIMENTI, RISTORAZIONI E BUONI PASTO",
+      },
+      {
+        "label": "Arredi e complementi di arredo",
+        "valore": "ARREDI E COMPLEMENTI DI ARREDO",
+      },
+      {
+        "label": "Beni e servizi al territorio",
+        "valore": "BENI E SERVIZI AL TERRITORIO",
+      },
+      {
+        "label": "Beni e servizi per la sanita'",
+        "valore": "BENI E SERVIZI PER LA SANITA'",
+      },
+      {
+        "label": "Beni e servizi per le persone",
+        "valore": "BENI E SERVIZI PER LE PERSONE",
+      },
+      {
+        "label": "Beni e servizi per gli immobili",
+        "valore": "BENI E SERVIZI PER GLI IMMOBILI",
+      },
+      {
+        "label": "Servizi di informazione",
+        "valore": "SERVIZI DI INFORMAZIONE",
+      }
+    ],
+    TIPO_RICHIESTA_ABL: [{
+        "label": "Abilitazione",
+        "valore": "ABILITAZIONE"
+      },
+      {
+        "label": "Disabilitazione",
+        "valore": "DISABILITAZIONE"
+      },
+      {
+        "label": "Subentro",
+        "valore": "SUBENTRO"
+      },
+      {
+        "label": "Delega",
+        "valore": "DELEGA"
+      },
+      {
+        "label": "Abilitazione nuove categorie",
+        "valore": "ABILITAZIONE_NUOVE_CATEGORIE"
+      },
+      {
+        "label": "Abilitazione inserimento impresa",
+        "valore": "ABILITAZIONE_INSERIMENTO_IMPRESA"
+      },
+      {
+        "label": "Aggiungi collaboratore",
+        "valore": "AGGIUNGI_COLLABORATORE"
+      },
+      {
+        "label": "Modifica dati impresa",
+        "valore": "MODIFICA_DATI_IMPRESA"
+      },
+      {
+        "label": "Rinnovo dichiarazioni",
+        "valore": "RINNOVO_DICHIARAZIONI"
+      },
+      {
+        "label": "Abilitazione LR",
+        "valore": "ABILITAZIONE_LR"
+      }
+    ],
+    STATO_ABILITAZIONE_PA: [{
+        "label": "Attivo",
+        "valore": "ATTIVO"
+      },
+      {
+        "label": "Cancellato",
+        "valore": "CANCELLATO"
+      },
+      {
+        "label": "Delegato",
+        "valore": "DELEGATO"
+      },
+      {
+        "label": "Subentrato",
+        "valore": "SUBENTRATO"
+      },
+      {
+        "label": "Attivo",
+        "valore": "ATTIVO_DELEGA_PENDING"
+      }
+    ],
+    STATO_RICHIESTA_ABL: [{
+        "label": "In compilazione",
+        "valore": "IN_COMPILAZIONE"
+      },
+      {
+        "label": "In attesa di documentazione",
+        "valore": "IN_ATTESA_DOCUMENTAZIONE"
+      },
+      {
+        "label": "Inviata",
+        "valore": "INVIATA"
+      },
+      {
+        "label": "Approvata",
+        "valore": "APPROVATA"
+      },
+      {
+        "label": "Rifiutata",
+        "valore": "RIFIUTATA"
+      },
+      {
+        "label": "Annullata",
+        "valore": "ANNULLATA"
+      },
+      {
+        "label": "In attesa di validazione amministrazione",
+        "valore": "IN_ATTESA_VALIDAZIONE_AMMINISTRAZIONE"
+      },
+      {
+        "label": "In lavorazione",
+        "valore": "IN_LAVORAZIONE"
+      },
+      {
+        "label": "Cancellata",
+        "valore": "CANCELLATA"
+      },
+      {
+        "label": "Azione richiesta",
+        "valore": "AZIONE_RICHIESTA"
+      }
+    ],
+    STATO_DELEGA: [{
+        "label": "In corso",
+        "valore": "ATTIVO",
+      },
+      {
+        "label": "Scaduta",
+        "valore": "SCADUTO",
+      },
+    ],
+    STATO_USERID: [{
+        "label": "Attivo",
+        "valore": "ATTIVO",
+      },
+      {
+        "label": "Cancellato",
+        "valore": "CANCELLATO",
+      },
+      {
+        "label": "Sospeso",
+        "valore": "SOSPESO",
+      }
+    ],
+    PREF_COMUNICAZIONI: [{
+        "label": "Impresa",
+        "valore": "IMPRESA",
+      },
+      {
+        "label": "PA",
+        "valore": "PA",
+      },
+      {
+        "label": "Entrambi",
+        "valore": "ENTRAMBI",
+      },
+      {
+        "label": "Nessuno",
+        "valore": "NESSUNO",
+      }
+    ],
+    PREF_CANALE_CONTATTO: [{
+        "label": "Telefono",
+        "valore": "TELEFONO",
+      },
+      {
+        "label": "Email",
+        "valore": "EMAIL",
+      }
+    ],
+    STATO_BANDO: [{
+        "label": "Attivo",
+        "valore": "ATTIVO"
+      },
+      {
+        "label": "Chiuso",
+        "valore": "CHIUSO"
+      },
+      {
+        "label": "Sospeso",
+        "valore": "SOSPESO"
+      },
+      {
+        "label": "Bozza",
+        "valore": "BOZZA"
+      },
+      {
+        "label": "Pubblicato",
+        "valore": "PUBBLICATO"
+      }
+    ],
+    CPV: [{
+        "type": "OutputCodiceValore",
+        "tipo": "CPV",
+        "valore": "2_PRODOTTI_DELL_AGRICOLTURA_E_DELL_ORTICOLTURA",
+        "label": "03100000-2",
+        "descrizione": "Prodotti dell'agricoltura e dell'orticoltura",
+        "ordine": 2
+      },
+      {
+        "type": "OutputCodiceValore",
+        "tipo": "CPV",
+        "valore": "3_PRODOTTI_AGRICOLI_PRODOTTI_DELL_ORTOFRUTTICOLTURA_COMMERCIALE",
+        "label": "03110000-5",
+        "descrizione": "Prodotti agricoli, prodotti dell'ortofrutticoltura commerciale",
+        "ordine": 3
+      }
+    ],
+    TEMPLATE_MDL: [{
+        "label": "Impresa",
+        "valore": "IMPRESA"
+      },
+      {
+        "label": "Default",
+        "valore": "DEFAULT"
+      },
+      {
+        "label": "Legale Rappresentante",
+        "valore": "LEGALE_RAPPRESENTANTE"
+      },
+      {
+        "label": "Bando",
+        "valore": "BANDO"
+      },
+    ]
+  }
+
+  const saveObj = function(name, data) {
+    calledObj[name] = data
+  }
+
+  const saveLst = function(name, data) {
+    calledLst[name] = data
+  }
+
+  const listToJson = function(data) {
+    const result = {}
+    for (let i = 0; i < data.length; i++) result[data[i].valore] = data[i]
+    return result
+  }
+
+  const _get = function(data, arg) {
+    return callHttpFactory.esterna(urlService.get() + "/dizionariservices/getListaCodici/" + data).then(function(payload) {
+      if (!payload || !payload.listaCodiciValore) {
+        if (arg) return $q.when(codDev[data])
+        else return $q.when(listToJson(codDev[data]))
+      }
+      if (arg) return payload.listaCodiciValore
+      else return listToJson(payload.listaCodiciValore)
+    }, function() {
+      if (arg) return $q.when(codDev[data])
+      else return $q.when(listToJson(codDev[data]))
+    })
+  }
+
+  this.convertListToJson = function(data) {
+    return listToJson(data)
+  }
+
+  this.get = function(data, args) {
+    let result = []
+    if (typeof data === 'string' || data instanceof String) return _get(data, args[0])
+    else if (Array.isArray(data)) {
+      const promises = []
+      for (let i = 0; i < data.length; i++) {
+        if (!args[i] && calledObj[data[i]]) promises.push($q.when(calledObj[data[i]]))
+        else if (args[i] && calledLst[data[i]]) promises.push($q.when(calledLst[data[i]]))
+        else promises.push(_get(data[i], args[i]))
+      }
+      return $q.all(promises).then(function(result) {
+        for (let i = 0; i < data.length; i++) {
+          if (!args[i] && !calledObj[i]) saveObj(data[i], result[i])
+          else if (args[i] && !calledLst[i]) saveLst(data[i], result[i])
+        }
+        return $q.when(result)
+      })
+    }
+  }
+
+}])
+
+angular.module("eprocApp").factory('pccModalFactory', ['$uibModal', function($uibModal) {
+  return {
+    openAlertModal: function(success, msg, scope) {
+      scope.alertMsg = msg;
+      scope.alertHeader = success ? "Successo" : "Errore";
+      scope.modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'alertModal.html',
+        controller: 'modalController',
+        backdrop: 'static',
+        size: 'md',
+        scope: scope,
+        resolve: {}
+      });
+    },
+
+    openDialogModal: function(header, msg, scope, confirmFunction, dismissFunction) {
+      scope.dialogHeader = header;
+      scope.dialogMsg = msg;
+      scope.modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'dialogModal.html',
+        controller: 'modalController',
+        backdrop: 'static',
+        size: 'md',
+        scope: scope,
+        resolve: {}
+      });
+
+      scope.modalInstance.result.then(confirmFunction, dismissFunction)
+    }
+  }
+}])
+
+angular.module("eprocApp").directive('fileModel', ['$parse', function($parse) {
+  return {
+    restrict: 'A',
+    link: function(scope, element, attrs) {
+      var model = $parse(attrs.fileModel);
+      var modelSetter = model.assign;
+
+      element.bind('change', function() {
+        scope.$apply(function() {
+          modelSetter(scope, element[0].files[0]);
+        });
+      });
+    }
+  };
+}]);
+
+angular.module("eprocApp").factory('pccXlsFactory', ['callHttpFactory', 'urlService', function(callHttpFactory, urlService) {
+  return {
+    createDocument: function(headers, rows, reportName) {
+      callHttpFactory.xls(urlService.get() + "/conservazione/exportExcel", {
+        "headers": headers,
+        "rows": rows
+      }).then(function(response) {
+        var blob = new Blob([response.data], {
+          type: "application/xsl"
+        });
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        var fileName = reportName;
+        link.download = fileName;
+        link.click();
+      })
+    }
+  }
+}])
+
+
+angular.module("eprocApp").factory('loginFactory', ['$state', function($state) {
+  return {
+    getUserId: function() {
+      const userInfo = JSON.parse(sessionStorage.getItem("UserInfo"));
+      if (userInfo)
+        return userInfo;
+      else
+        return $state.go('pcc.utente.login');
+    },
+
+    setPhoneAndComPrefereces: function(c, p, t) {
+      var userid = JSON.parse(sessionStorage.getItem("UserInfo"));
+      if (userid) {
+        userid.utente.cellulare = c;
+        userid.utente.preferenzaComunicazioni = p;
+        userid.utente.telefono = t;
+        userid = angular.toJson(userid);
+        sessionStorage.setItem("UserInfo", userid);
+      }
+    }
+  }
+}])
+
+angular.module("eprocApp").directive('bndStretch', function($window) {
+  return {
+    link: function(elem, attr) {
+      console.log(angular.element(elem.id)[0].offsetHeight)
+      console.log(angular.element(attr.stretchFor)[0].offsetHeight)
+
+      // if (angular.element(elem.id)[0].offsetHeight > angular.element(attr.child)[0].offsetHeight)
+    }
+  }
+})
+
+angular.module("eprocApp").filter('titlecase', function() {
+  return function(input) {
+    if (input.indexOf(' ') !== -1) {
+      var inputPieces,
+        i;
+
+      input = input.toLowerCase();
+      inputPieces = input.split(' ');
+
+      for (i = 0; i < inputPieces.length; i++) {
+        inputPieces[i] = capitalizeString(inputPieces[i]);
+      }
+
+      return inputPieces.toString().replace(/,/g, ' ');
+    } else {
+      input = input.toLowerCase();
+      return capitalizeString(input);
+    }
+
+    function capitalizeString(inputString) {
+      return inputString.substring(0, 1).toUpperCase() + inputString.substring(1);
+    }
+  };
+})
+
+// $scope.esportaDocumentoErrore = function() {
+//   pccXlsFactory.createDocument(["Modulo Sorgente", "Tipologia errore", "Descrizione errore", "Data errore", "Tipo registro", "ID documento"], $scope.report, "report.xls")
+// }
+
+// angular.module("eprocApp").service('fileUpload', ['$http', function ($http) {
+//     this.uploadFileToUrl = function(file, uploadUrl){
+//         var fd = new FormData();
+//         fd.append('file', file);
+//         $http.post(uploadUrl, fd, {
+//             transformRequest: angular.identity,
+//             headers: {'Content-Type': undefined}
+//         })
+//         .then(function() { console.log("SUCCESS") }, function() { console.log("FAIL") });
+//     }
+// }]);

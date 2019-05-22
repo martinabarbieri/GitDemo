@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite guice-stage="DEVELOPMENT" name="Failed suite [Suite]">
+  <test thread-count="5" name="Primo(failed)">
+    <classes>
+      <class name="com.modulodatitest.ListaModuloDatiNotevoli">
+        <methods>
+          <include name="ModuliDatiNotevoli"/>
+          <include name="ChangeNameModulo"/>
+          <include name="UploadFileDomandaSemplice"/>
+          <include name="UUTestoLiberoNumericoDomandaSemplice"/>
+          <include name="SectionAdding"/>
+          <include name="SectionRequisitoAdding"/>
+          <include name="AddModuli"/>
+        </methods>
+      </class> <!-- com.modulodatitest.ListaModuloDatiNotevoli -->
+    </classes>
+  </test> <!-- Primo(failed) -->
+</suite> <!-- Failed suite [Suite] -->

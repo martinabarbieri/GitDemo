@@ -1,0 +1,1723 @@
+angular.module("eprocApp").controller('searchCtrl', function ($scope, $http, $uibModal, EprocAAW, $location, $timeout, $filter, $window, $rootScope, $translate) {
+
+    $scope.showSearch = false;
+    $scope.model = {};
+    $scope.model.listaSedia = [];
+    $scope.model.personalInfo = [];
+    $scope.model.userEnable = false;
+    $scope.model.personalInfoSession = {};
+    $scope.model.linkUtili = [];
+    $scope.model.titleQuickLink = '';
+    $scope.model.urlQuickLink = '';
+    $scope.model.isQuickLink = false;
+    $scope.model.numMessaggi = [];
+    $scope.model.numItemPreferiti = [];
+    $scope.model.numItemCarrello = [];
+    $scope.model.indexDnd = null;
+    $scope.model.oldPos = null;
+    $scope.model.linkUtiliApp = [];
+    $scope.model.hasError = false;
+    $scope.model.addLinkUtili = true;
+    $scope.showLinkCount = false;
+    $scope.showMsgCount = false;
+    $scope.showFavCount = false;
+    $scope.showCartCount = false;
+    $scope.model.showLoginPanel = false;
+    $scope.model.sedieNames = [];
+    $scope.model.numLinkRapidi = {};
+    $scope.model.apriLogin = EprocAAW.getShowLogin();
+    $scope.detailPromiseLink = "";
+    $scope.loginPromise = "";
+    $scope.model.spid = [];
+    $scope.model.spidPopover = {};
+    $scope.model.sedieNames["FOLR"] = "LEGALE RAPPRESENTANTE";
+    $scope.model.sedieNames["FODELEGA"] = "OPERATORE D'IMPRESA";
+    $scope.view = {};
+    $scope.view.isLoginDemanded = false;
+    $scope.view.errorMessage = "Username o password errate";
+    $scope.model.callSpid = false;
+    $scope.showSpid = false;
+    $scope.disableAccedi = false;
+    $scope.showLanguage= 'it';
+
+
+    $scope.changeLanguage = function (language) {
+		$translate.use(language);
+        $scope.showLanguage = language;
+    }
+
+    var thisUrl = $location.absUrl();
+    $scope.programmaUrl = 'https://' + $location.host() + '/opencms/opencms/system/modules/my.template/template/menu_programma.jsp';
+
+    if (thisUrl.indexOf("SpidAuthErrCode") > -1) {
+        //	EprocAAW.triggerLogin($rootScope,$window);
+        $scope.errorCodeSpid = $location.absUrl().split("SpidAuthErrCode=")[1];
+    }
+
+    $scope.getSpidCode = function (data) {
+        $scope.errorTextSpid = [];
+        $scope.errorTextSpid["SPID_001"] = "Impossibile estrarre codice fiscale da SAML Assertion";
+        $scope.errorTextSpid["SPID_002"] = "Impossibile ripristinare il codice fiscale a seguito della ripresa del plugin";
+        $scope.errorTextSpid["SPID_003"] = "Impossibile inizializzare l'IDSTORE";
+        $scope.errorTextSpid["SPID_004"] = "Prima di usare SPID ricorda di effettuare la registrazione su Acquistinrete";
+        $scope.errorTextSpid["SPID_005"] = "impossibile costruire la lista utenti da passare alla pagina di selezione";
+        $scope.errorTextSpid["SPID_006"] = "Errore durante la decisione dell'utente da mettere in sessione.";
+        $scope.errorTextSpid["SPID_007"] = "Su OID è presente più di un utente per quel codice fiscale quando ce ne dovrebbe essere solo uno";
+        $scope.errorTextSpid["SPID_008"] = "Su OID non è presente nessun utente per quel codice fiscale quando ce ne dovrebbe essere uno";
+        $scope.errorTextSpid["SPID_009"] = "Impossibile utilizzare l'utente OID da mettere in sessione";
+
+        return $scope.errorTextSpid[data];
+    }
+
+    var LOGIN_SUCCESS_DELTA = "href=\"/shres/internal/sessionProperty?sessid=";
+    var LOGIN_SUCCESS_DELTA_2 = "data-ng-controller=\"MenuLateraleCtrl\"";
+    var LOGIN_ERROR_MESSAGE = "Errore in fase di login, controllare nome utente e password";
+
+    var CODICE_FISCALE = "codice fiscale";
+    var USER_PROFILE_URL = "/shres/internal/userProfileJSON";
+
+    var MODAL_CONF = {
+        templateUrl: "/opencms/opencms/system/modules/my.template/resources/modalSedie.html",
+        bindToController: true,
+        controller: 'ModalInstanceCtrlSedie',
+        controllerAs: '$mc',
+        windowClass: 'app-modal-window-sedie',
+        backdrop: 'static',
+        keyboard: false,
+        resolve: {
+            items: function () {
+                var appo = {};
+                appo.listaSedia = $scope.model.listaSedia;
+                appo.personalInfo = $scope.model.personalInfoSession;
+                appo.sedieNames = $scope.model.sedieNames;
+                appo.isLoginDemanded = $scope.view.isLoginDemanded;
+                return appo;
+            }
+        }
+
+
+    };
+
+    //update link utili
+    $rootScope.$on("updateLinkUtili", function () {
+        //console.log("update Contatore Link");
+        $scope.getNumLinkUtili();
+        var request = {
+            "uri": "/carrelloservices/getNumItemPreferiti",
+            "method": "GET",
+            "input": {},
+            "callback": $scope.numItemPreferitiCallback
+        };
+        $scope.detailPromiseLink = EprocAAW.callService(request, true);
+    });
+
+    $scope.numLinkUtiliCallback = function (data) {
+        if (data.result.exitCode == 5 || data.result.exitCode != EprocAAW.OK_CODE) {
+            $scope.showLinkCount = false;
+        }
+        else {
+            $scope.model.numLinkRapidi = data.payload;
+            $scope.showLinkCount = true;
+        }
+
+        $scope.getLinkUtili();
+    };
+
+    $scope.linkUtiliCallback = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            var linkListApp = data.payload != null && angular.isDefined(data.payload) ? data.payload.linkRapidi : [];
+            $scope.model.linkUtili = $filter('orderBy')(linkListApp, "ordine");
+
+            for (var i = 0; i < $scope.model.linkUtili.length; i++) {
+                if ($scope.model.linkUtili[i].urlLink == $scope.model.urlQuickLink) {
+                    $scope.model.addLinkUtili = false;
+                }
+            }
+            $scope.model.numLinkRapidi = $scope.model.linkUtili.length;
+            $scope.showLinkCount = true;
+        }
+        else {
+            //console.log("Link Counter Error");
+        }
+    };
+
+
+    $scope.numItemCarrelloCallback = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.numItemCarrello = data.payload.numeroItem;
+            $scope.showCartCount = true;
+        }
+        else {
+            //console.log("Cart Counter Error");
+        }
+    };
+
+    $scope.numItemPreferitiCallback = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.numItemPreferiti = data.payload;
+            $scope.showFavCount = true;
+        }
+        else {
+            //console.log("Fav Counter Error");
+        }
+    };
+
+    $scope.numMessaggiCallback = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.numMessaggi = data.payload.totale;
+            $scope.showMsgCount = true;
+        }
+        else {
+            //console.log("Messages Counter Error");
+        }
+    };
+
+    $scope.getNumLinkUtili = function () {
+		/* var request = {
+			 "uri": "/opencms/opencms/system/modules/my.template/resources/getNumLinkRapidi.json",
+			 "method": "GET",
+			 "input": {},
+			 "callback": $scope.numLinkUtiliCallback
+		};
+		$scope.detailPromiseLink = EprocAAW.callService(request, true); */
+        var request = {
+            "uri": "/linkrapidiservices/getLinkRapidi",
+            "method": "GET",
+            "input": {},
+            "callback": $scope.linkUtiliCallback
+        };
+        $scope.detailPromiseLink = EprocAAW.callService(request, true);
+    };
+
+    $scope.getLinkUtili = function () {
+        var request = {
+            "uri": "/linkrapidiservices/getLinkRapidi",
+            "method": "GET",
+            "input": {},
+            "callback": $scope.linkUtiliCallback
+        };
+        $scope.detailPromiseLink = EprocAAW.callService(request, true);
+    };
+
+    $scope.callServiceCounters = function () {
+        var request = {
+            "uri": "/carrelloservices/getNumItemCarrello",
+            "method": "GET",
+            "input": {},
+            "callback": $scope.numItemCarrelloCallback
+        };
+
+        var request1 = {
+            "uri": "/carrelloservices/getNumItemCarrello",
+            "method": "GET",
+            "input": {},
+            "callback": $scope.numItemPreferitiCallback
+        };
+
+        var request2 = {
+            "uri": "/comunicazioneservices/getContatori",
+            "method": "GET",
+            "input": {},
+            "callback": $scope.numMessaggiCallback
+        };
+
+        if ($scope.model.personalInfoSession.loginInfoBean.tipologiaUtente != 'IMPRESA') {
+            $scope.detailPromiseCarrello = EprocAAW.callService(request, true);
+        }
+        // $scope.detailPromise = EprocAAW.callService(request1,true);
+        //EprocAAW.callService(request1);
+        // $scope.detailPromiseMessaggi = EprocAAW.callService(request2, true); // newp
+    };
+
+    $scope.$on("addItemCarrello", function () {
+        if (EprocAAW.isUserAuthenticated) {
+            var request = {
+                "uri": "/carrelloservices/getNumItemCarrello",
+                "method": "GET",
+                "input": {},
+                "callback": $scope.numItemCarrelloCallback
+            };
+
+            if ($scope.model.personalInfoSession.loginInfoBean.tipologiaUtente != 'IMPRESA') {
+                $scope.detailPromiseCarrello = EprocAAW.callService(request, true);
+            }
+        }
+    });
+	/*
+	$scope.$on("updateCounterMessaggi", function() {
+		if (EprocAAW.isUserAuthenticated) {
+			var request = {
+				 "uri": "/opencms/opencms/cruscotto/json/getContatori.json",
+				 "method": "GET",
+				 "input": {},
+				 "callback": $scope.numMessaggiCallback
+			};
+			
+				$scope.detailPromiseMessaggi = EprocAAW.callService(request,true);
+		
+		}
+	});
+	*/
+
+
+
+
+    $scope.personalInfoCallBack = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.personalInfoSession = data.payload;
+            var personal = angular.toJson($scope.model.personalInfoSession);
+            sessionStorage.setItem('personalInfo', personal);
+            var d = new Date();
+            sessionStorage.setItem('dateLogin', d.getTime());
+            $scope.model.userEnable = true;
+            $rootScope.$broadcast('isAuthenticated');
+            $scope.getNumLinkUtili();
+            $scope.callServiceCounters();
+        }
+        else if (data.result.exitCode == EprocAAW.KO_CODE && data.result.text == EprocAAW.NO_JSON_ERR_MESS) {
+            //console.log("current session is NOT autheinticated");
+            sessionStorage.removeItem('personalInfo');
+        }
+        else {
+            //console.log("Service getuserinfo Error, current session is NOT autheinticated", data);
+            sessionStorage.removeItem('personalInfo');
+            //EprocAAW.handleError();
+        }
+    };
+
+
+
+
+    $scope.personalInfoCallBackSedie = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.personalInfoSession = data.payload;
+            //var personal = angular.toJson($scope.model.personalInfoSession);
+            //sessionStorage.setItem('personalInfo',personal);
+            //var d = new Date();
+            //sessionStorage.setItem('dateLogin',d.getTime());
+            //$scope.model.userEnable = true;
+            //$scope.getLinkUtili();
+            //$scope.callServiceCounters();
+            if ($scope.model.listaSedia.length > 1) {
+                var uiModal = showModal();
+            }
+        }
+        else if (data.result.exitCode == EprocAAW.KO_CODE && data.result.text == EprocAAW.NO_JSON_ERR_MESS) {
+            //console.log("current session is NOT autheinticated");
+            sessionStorage.removeItem('personalInfo');
+        }
+        else {
+            //console.log("Service getuserinfo Error, current session is NOT autheinticated", data);
+            sessionStorage.removeItem('personalInfo');
+            //EprocAAW.handleError();
+        }
+    };
+
+
+
+
+    // controllo lo stato autenticazione utente invocando la getUserInfo
+    var request = {
+        "uri": "/authservices/getUserInfo",
+        "method": "GET",
+        "input": {},
+        "callback": $scope.personalInfoCallBack
+    };
+
+    EprocAAW.callService(request, true);
+
+    $scope.entraSpidCallback = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.spid = data.payload.provider;
+            $scope.model.callSpid = true;
+        } else {
+            EprocAAW.alertError(data.result.text);
+        }
+    }
+
+    $scope.entraSpid = function () {
+
+        if ($scope.model.callSpid == false) {
+
+            var requestSpid = {
+                "uri": "/opencms/opencms/rifacimento_nuovo_portale/getSpidProvider.json",
+                "method": "GET",
+                "input": {},
+                "callback": $scope.entraSpidCallback
+            };
+
+            EprocAAW.callService(requestSpid, true);
+
+        }
+
+        $scope.showSpid = !$scope.showSpid;
+
+    };
+
+
+
+    var titleQuickLink = ('<cms:property name="Title" escapeHtml="false"/>' == null || '<cms:property name="Title" escapeHtml="false"/>' == '' ? '' : '<cms:property name="Title" escapeHtml="false"/>');
+    var isQuickLink = ('<cms:property name="isQuickLink" escapeHtml="false"/>' == null || '<cms:property name="isQuickLink" escapeHtml="false"/>' == '' ? '' : '<cms:property name="isQuickLink" escapeHtml="false"/>');
+
+    if (isQuickLink != null && isQuickLink != '') {
+        $scope.model.isQuickLink = true;
+        $scope.model.titleQuickLink = titleQuickLink;
+
+        if ($location.absUrl().indexOf("liste_preferiti") > -1 || $location.absUrl().indexOf("filo_diretto") > -1) {
+            $scope.model.urlQuickLink = $location.absUrl();
+            if ($location.absUrl().indexOf("title=Prodotti") > -1) {
+                $scope.model.titleQuickLink = "Liste prodotti preferiti";
+            } else if ($location.absUrl().indexOf("title=Fornitori") > -1) {
+                $scope.model.titleQuickLink = "Liste fornitori preferiti";
+            } else if ($location.absUrl().indexOf("filo_diretto.html") > -1) {
+                $scope.model.titleQuickLink = 'Filo diretto';
+            }
+        } else {
+            $scope.model.urlQuickLink = $location.absUrl().split('?')[0];
+        }
+    }
+
+
+
+    $scope.sedieList = function () {
+
+        /*		var request = {
+                    "uri": "/opencms/opencms/system/modules/my.template/resources/getSedie.json",
+                    "method": "GET",
+                    "input": {},
+                    "callback": $scope.success
+                };
+                EprocAAW.callService(request); */
+
+        $scope.loginPromise = $http({
+            //url:'/opencms/opencms/system/modules/my.template/resources/getSedie.json',
+            url: '/oam/server/authentication',
+            method: "POST",
+            //method:"GET",
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            data: "action=login&p_done_url=https://evo.acquistinretepa.it/opencms/opencms/main/areapersonale/homepageRedirect.jsp&cortesiaVis=S&cortesia_url=/opencms/opencms/main/areapersonale/cortesiaPage.jsp&username=" + $scope.user + "&password=" + $scope.password + "&successurl=https://evo.acquistinretepa.it/shres/internal/userProfile?output=json"
+        }).then($scope.success, $scope.failure);
+
+    };
+
+    $scope.selectedChairCallback = function (data) {
+        //console.log("selectedChairCallback's data", data);
+        window.location.reload();
+    };
+
+    $scope.sedieCallback = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+
+            $scope.disableAccedi = true;
+
+            $scope.model.listaSedia = data.payload.sedie;
+            if ($scope.model.listaSedia.length == 1) {
+                if ($scope.view.isLoginDemanded === true) {
+                    // ajax call toward /internal/sessionProperty
+                    var request = {
+                        "uri": "/shres/internal/sessionProperty?sessid=" + $scope.model.listaSedia[0].sessionId,
+                        "method": "GET",
+                        "input": {},
+                        "callback": $scope.selectedChairCallback
+                    };
+                    EprocAAW.callService(request, false);
+                }
+                else {
+                    window.location.href = "/shres/internal/sessionProperty?sessid=" + $scope.model.listaSedia[0].sessionId;
+                }
+            } else {
+                //var uiModal = showModal();
+            }
+            /*var request = {
+                "uri": "/opencms/opencms/system/modules/my.template/resources/getPersonalInfo.json",
+                "method": "GET",
+                "input": {},
+                "callback": $scope.personalInfoCallBack
+            };
+        	
+            EprocAAW.callService(request); */
+        }
+        else {
+            //console.log(data);
+            //EprocAAW.handleError("Errore in fase di login, controllare nome utente e password");
+        }
+    };
+
+    $scope.tokenCallback = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            //console.log("getToken successfully called", data);
+            var request = {
+                "uri": "/authservices/getUserInfo",
+                "method": "GET",
+                "input": {},
+                "callback": $scope.personalInfoCallBackSedie
+            };
+
+            EprocAAW.callService(request);
+        }
+        else {
+            //console.log("getToken UNsuccessfully called", data);
+            //EprocAAW.handleError("Errore in fase di login, controllare nome utente e password");
+        }
+    };
+
+    $scope.success = function (data) {
+        /*if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.listaSedia = data.payload.sedie;
+
+            var request = {
+                "uri": "/opencms/opencms/system/modules/my.template/resources/getPersonalInfo.json",
+                "method": "GET",
+                "input": {},
+                "callback": $scope.personalInfoCallBack
+            };		
+        	
+            EprocAAW.callService(request);
+        }
+        else {
+            EprocAAW.handleError();
+        } */
+        //			if (data.result.exitCode == EprocAAW.OK_CODE) {
+        // /shres/internal/sessionProperty
+        var delta;
+        if (angular.isDefined(data.data) && angular.isDefined(data.data.result)) {
+            delta = data.data.result.exitCode;
+        }
+
+        if (angular.isDefined(delta) && delta == EprocAAW.OK_CODE) {
+            var requestToken = {
+                "uri": "/authservices/getToken ",
+                "method": "GET",
+                "input": {},
+                "callback": $scope.tokenCallback
+            };
+            EprocAAW.callService(requestToken, true);
+
+            /* var request = {
+                "uri": "/shres/internal/userProfileJSON",
+                "method": "GET",
+                "input": {},
+                "callback": $scope.sedieCallback
+            };
+            EprocAAW.callService(request); */
+            $scope.sedieCallback(data.data);
+        }
+        else {
+            // EprocAAW.handleError(LOGIN_ERROR_MESSAGE);
+            if (angular.isDefined(delta)) {
+                $scope.view.errorMessage = data.data.result.text;
+                $scope.model.hasError = true;
+            }
+            else {
+                if (data.data != null && data.data.toLowerCase().indexOf(CODICE_FISCALE) != -1) {
+                    window.location.href = USER_PROFILE_URL;
+                }
+            }
+        }
+    };
+
+    $scope.clearError = function () {
+        $scope.model.hasError = false;
+    }
+
+    $scope.failure = function (data) {
+        alert("Error HTTP: " + data.status + "\n check logs for details");
+        //console.log("data: ", data);
+    };
+
+    function showModal() {
+        //console.log("opening new modal");
+        var uiModal = $uibModal.open(MODAL_CONF);
+        return uiModal;
+    }
+
+    $scope.deleteLink = function (id) {
+        var idLink = id;
+        var request = {
+            "uri": "/linkrapidiservices/deleteLinkRapido",
+            "method": "POST",
+            "input": { "id": id },
+            "callback": $scope.deleteLinkCallback
+        };
+
+        $scope.detailPromiseLink = EprocAAW.callService(request, true);
+    };
+
+
+    $scope.deleteLinkCallback = function (data) {
+        var result = data.result.text;
+        if (result == 'OK') {
+            $scope.getLinkUtili();
+            $scope.getNumLinkUtili();
+        }
+        else {
+            EprocAAW.alertError(result);
+        }
+    };
+
+    $scope.aggiungiQuickCallback = function (data) {
+        var result = data.result.exitCode;
+        if (result == '200') {
+            $scope.getLinkUtili();
+            $scope.getNumLinkUtili();
+        }
+        else {
+            EprocAAW.alertError(result);
+        }
+    };
+
+    $scope.aggiungiQuickLink = function () {
+
+        var request = {
+            "uri": "/linkrapidiservices/saveLinkRapido",
+            "method": "POST",
+            "input": { "titolo": $scope.model.titleQuickLink, "url": $scope.model.urlQuickLink },
+            "callback": $scope.aggiungiQuickCallback
+        };
+
+        $scope.detailPromiseLink = EprocAAW.callService(request, true);
+    };
+
+    $scope.models = {
+        selected: null,
+    };
+
+    // Generate initial model
+    for (var i = 1; i <= $scope.model.linkUtili.length; ++i) {
+        $scope.model.linkUtili.push();
+
+    }
+
+
+    $scope.dragoverCallback = function (event, index, external, type) {
+        $scope.logListEvent('dragged over', event, index, external, type);
+        // Disallow dropping in the third row. Could also be done with data-dnd-disable-if.
+        return index < 10;
+    };
+
+    $scope.dropCallback = function (event, index, item, external, type, allowedType) {
+        $scope.logListEvent('dropped at', event, index, external, type);
+        if (external) {
+            if (allowedType === 'itemType' && !item.label) return false;
+            if (allowedType === 'containerType' && !angular.isArray(item)) return false;
+        }
+        return item;
+    };
+
+    $scope.dndEnd = function (message, event) {
+
+        //console.log("posiziona nuova"+ $scope.model.indexDnd);
+
+        ;
+
+
+        var linkUtile = [];
+        linkUtile = $scope.model.linkUtiliApp;
+
+        var test = {
+            "id": linkUtile.idLink,
+            "titolo": linkUtile.testoLink,
+            "url": linkUtile.urlLink,
+            "ordine": ($scope.model.oldPos < $scope.model.indexDnd ? $scope.model.indexDnd : $scope.model.indexDnd + 1)
+        }
+        $scope.updateLink(test);
+    };
+
+    $scope.updateLink = function (data) {
+        var request = {
+            "uri": "/linkrapidiservices/updateLinkRapido",
+            "method": "POST",
+            "input": data,
+            "callback": $scope.updateLinkUtiliCallback
+        };
+        $scope.detailPromiseLink = EprocAAW.callService(request, true);
+    };
+
+    $scope.updateLinkUtiliCallback = function (data) {
+        var result = data.result.text;
+        if (result == 'OK') {
+            $scope.getLinkUtili();
+        } else {
+            EprocAAW.alertError(result);
+            $scope.getLinkUtili();
+        }
+    };
+
+    $scope.logEvent = function (index, indexDollaro) {
+
+        //console.log("posiziona vecchia"+indexDollaro);
+    };
+
+    $scope.startDnd = function (indexDollaro) {
+        $scope.model.oldPos = indexDollaro;
+        $scope.model.linkUtiliApp = $scope.model.linkUtili[indexDollaro];
+    };
+
+    $scope.dndInsert = function (event, index) {
+        $scope.model.indexDnd = index;
+    };
+
+    $scope.checkLogin = function (form) {
+        if (form.password.$valid && form.user.$valid) {
+            return false;
+        }
+        else {
+            return true;
+        }
+
+        //return form.password.$error.required && form.user.$error.required;
+        //return true;
+    }
+
+    $scope.logListEvent = function (action, event, index, external, type) {
+        var message = external ? 'External ' : '';
+        message += type + ' element is ' + action + ' position ' + index;
+
+    };
+
+    $scope.destroySession = function () {
+        sessionStorage.removeItem('personalInfo');
+        //console.log("session: " + sessionStorage.getItem('personalInfo'));
+    };
+
+
+    $scope.$on("loginRequired", function () {
+		/*var loginElem = angular.element("#loginContainer");
+		console.log("loginContainer", loginElem);
+		loginElem.addClass('open'); */
+        // $scope.showLoginPanel = true;
+
+        $timeout(function () {
+            $("#accedi").trigger('click');
+        }, 1);
+        $scope.view.isLoginDemanded = true;
+    });
+
+    // controllo se c'è la necessità di mostrare il form di login
+    if (thisUrl.indexOf("force=true") != -1) {
+        $timeout(function () {
+            $("#accedi").trigger('click');
+        }, 1);
+        $window.scrollTo(0, angular.element(document.getElementById('#loginContainer')).offsetTop);
+    }
+
+
+    $scope.sedieCallbackSpid = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.listaSedia = data.payload.sedie;
+            var uiModal = showModal();
+        }
+    };
+
+    // controllo se è necessario mostrare la popup della scelta delle sedie
+    if (thisUrl.indexOf("where=sedie") != -1) {
+        var request = {
+            "uri": "/shres/internal/userProfileJSON",
+            "method": "GET",
+            "input": {},
+            "callback": $scope.sedieCallbackSpid
+        };
+        EprocAAW.callService(request);
+    }
+
+
+
+
+    $(window).click(function () {
+        $scope.model.showLoginPanel = false;
+        $("ul#login-dp").removeClass('show').addClass('hidden');
+        //$scope.view.isLoginDemanded = false;
+    });
+
+    $('#loginContainer').click(function (event) {
+        if ($scope.model.showLoginPanel == true) {
+            $("ul#login-dp").removeClass('hidden').addClass('show');
+            //$scope.view.isLoginDemanded = false;
+            event.stopPropagation();
+        }
+    });
+
+    setTimeout(function () {
+        $(function () {
+            $('#dl-menu').dlmenu({
+                animationClasses: { classin: 'dl-animate-in-4', classout: 'dl-animate-out-4' }
+            });
+        });
+
+        $(function () {
+            $('#dl-menu1').dlmenu();
+        });
+
+        $(function () {
+            $('#dl-menu2').dlmenu({
+                animationClasses: { classin: 'dl-animate-in-4', classout: 'dl-animate-out-4' }
+            });
+        });
+    }, 500);
+    // header xs
+
+
+    if ($(window).width() < 768) {
+
+        $window.scrollTo(0, 0);
+
+        $(window).scroll(function (event) {
+            //			$scope.didScroll = true;
+
+            if (document.documentElement.scrollTop < 60) {
+                $("div#navbarMenu").removeClass('hideHeader');
+                $("div#backToTop").removeClass('show').addClass('hidden');
+                $('header').removeClass('topScroll0').addClass('topScroll');
+            }
+            if (document.documentElement.scrollTop > 100) {
+                $("div#navbarMenu").addClass('hideHeader');
+                $('header').addClass('topScroll0');
+                $("div#backToTop").removeClass('hidden').addClass('show');
+            }
+
+        });
+
+		/*	 setInterval(function() {
+				if ($scope.didScroll) {
+					$scope.didScroll = false;
+				}
+			}, 200);  
+			
+			
+			
+			function hasScrolled() {
+				// var st = $(this).scrollTop();
+				var st = document.body.scrollTop;
+				
+				// Make sure they scroll more than delta
+				if(Math.abs($scope.lastScrollTop - st) <= delta)
+					return;
+				
+				// If they scrolled down and are past the navbar, add class .nav-up.
+				// This is necessary so you never see what is "behind" the navbar.
+				if (st > $scope.lastScrollTop && st > navbarHeight){
+					// Scroll Down
+					$('header').removeClass('nav-down').addClass('nav-up');
+				} else {
+					// Scroll Up
+					if(st + $(window).height() < $(document).height()) {
+						$('header').removeClass('nav-up').addClass('nav-down');
+					}
+				}
+				
+				$scope.lastScrollTop = st;
+			} */
+    };
+
+    // $window.scrollTo(0, 0);
+    $timeout(function () { $window.scrollBy(0, -1200); }, 1000);
+
+    //$window.scrollTo(0, angular.element(document.getElementById('#backToTop')).offsetTop);
+
+    var MODAL_CONF_PROFILO = {
+
+        templateUrl: "/opencms/opencms/system/modules/my.template/resources/modalProfilo.html",
+        bindToController: true,
+        controller: 'ModalInstanceCtrlProfilo',
+        controllerAs: '$mc',
+        windowClass: 'app-modal-window-profilo',
+        backdrop: 'static',
+        keyboard: false,
+        resolve: {
+            items: function () {
+                var appo = {};
+                appo.listaSedia = $scope.model.listaSedia;
+                appo.personalInfo = $scope.model.personalInfoSession;
+                appo.sedieNames = $scope.model.sedieNames;
+                return appo;
+            }
+        }
+    };
+    //MODALE PROFILO
+    $scope.showModalProfilo = function () {
+        //console.log("opening new modal");
+        var uiModal = $uibModal.open(MODAL_CONF_PROFILO);
+        return uiModal;
+    }
+
+});
+
+eprocApp.controller('ModalInstanceCtrlSedie', function ($uibModalInstance, $scope, items, EprocAAW, $timeout, $window) {
+    $scope.listaSedia = items.listaSedia;
+    $scope.personal = items.personalInfo;
+    $scope.sedieNames = items.sedieNames;
+    var BASE_URL = "/shres/internal/sessionProperty?sessid=";
+
+    $scope.selectedChairCallback = function (data) {
+        //console.log("selectedChairCallback's data", data);
+        window.location.reload();
+    };
+
+    $scope.selectChair = function (sedia) {
+        if (items.isLoginDemanded == true) {
+            // ajax call toward /internal/sessionProperty
+            var request = {
+                "uri": BASE_URL + sedia.sessionId,
+                "method": "GET",
+                "input": {},
+                "callback": $scope.selectedChairCallback
+            };
+            EprocAAW.callService(request, false);
+            //window.location.href = BASE_URL + sedia.sessionId;
+        }
+        else {
+            // simple URL change toward /internal/sessionProperty
+            window.location.href = BASE_URL + sedia.sessionId;
+        }
+    };
+    $timeout(function () {
+        var element = $window.document.getElementById("chair_list_0");
+        if (element) {
+            element.focus();
+        }
+    }, 100);
+
+
+});
+
+eprocApp.controller('ModalInstanceCtrlProfilo', function ($uibModalInstance, $scope, items) {
+    $scope.listaSedia = items.listaSedia;
+    $scope.personal = items.personalInfo;
+    $scope.sedieNames = items.sedieNames;
+
+    $scope.cancelProfilo = function () {
+        $uibModalInstance.dismiss('cancel');
+    };
+
+});
+
+eprocApp.controller('ModalInstanceCtrlSpid', function ($uibModalInstance, $scope, items) {
+    $scope.spid = items.spid;
+
+    $scope.cancelSpid = function () {
+        $uibModalInstance.dismiss('cancel');
+    };
+
+});
+
+eprocApp.controller('MenuCtrl', function ($scope, $window, $http, $uibModal, EprocAAW, $location, $timeout, $filter, $rootScope) {
+    $scope.model = {};
+    $scope.model.userEnable = sessionStorage.getItem('personalInfo') != null;
+    $scope.model.user = angular.fromJson(sessionStorage.getItem('personalInfo'));
+    //console.log("$scope.model.user", $scope.model.user);
+    $scope.model.showSearch = false;
+    $scope.model.showSearchXS = false;
+    $scope.model.emptyForm = false;
+    $scope.model.showCruscottoXs = false;
+    $scope.model.showLoginPanelXs = false;
+    $scope.model.passwordXS = "";
+    $scope.model.userXS = "";
+    $scope.radioSearchXs = "Prodotti";
+    $scope.maxWords = [];
+    //login
+    $scope.model.listaSedia = [];
+    $scope.model.personalInfo = [];
+    //	$scope.model.userEnable= false;
+    $scope.model.personalInfoSession = {};
+    $scope.model.hasError = false;
+    $scope.model.sedieNames = [];
+    $scope.radioSearchXs = "Prodotti";
+    $scope.model.spid = [];
+    $scope.loginPromiseXs = "";
+    $scope.model.sedieNames["FOLR"] = "LEGALE RAPPRESENTANTE";
+    $scope.model.sedieNames["FODELEGA"] = "OPERATORE D'IMPRESA";
+    $scope.view = {};
+
+    if ($(window).width() < 768) {
+        if ($location.absUrl().indexOf("SpidAuthErrCode") > -1) {
+            $scope.errorCodeSpid = $location.absUrl().split("SpidAuthErrCode=")[1];
+            $timeout(function () {
+                $("button#buttonLoginXs").trigger('click');
+            }, 500);
+        }
+    } else {
+        if ($location.absUrl().indexOf("SpidAuthErrCode") > -1) {
+            $scope.errorCodeSpid = $location.absUrl().split("SpidAuthErrCode=")[1];
+            EprocAAW.triggerLogin($rootScope, $window);
+        }
+    }
+
+    $scope.getSpidCode = function (data) {
+        $scope.errorTextSpid = [];
+        $scope.errorTextSpid["SPID_001"] = "Impossibile estrarre codice fiscale da SAML Assertion";
+        $scope.errorTextSpid["SPID_002"] = "Impossibile ripristinare il codice fiscale a seguito della ripresa del plugin";
+        $scope.errorTextSpid["SPID_003"] = "Impossibile inizializzare l'IDSTORE";
+        $scope.errorTextSpid["SPID_004"] = "Prima di usare SPID ricorda di  effettuare la registrazione su Acquistinrete ";
+        $scope.errorTextSpid["SPID_005"] = "impossibile costruire la lista utenti da passare alla pagina di selezione";
+        $scope.errorTextSpid["SPID_006"] = "Errore durante la decisione dell'utente da mettere in sessione.";
+        $scope.errorTextSpid["SPID_007"] = "Su OID è presente più di un utente per quel codice fiscale quando ce ne dovrebbe essere solo uno";
+        $scope.errorTextSpid["SPID_008"] = "Su OID non è presente nessun utente per quel codice fiscale quando ce ne dovrebbe essere uno";
+        $scope.errorTextSpid["SPID_009"] = "Impossibile utilizzare l'utente OID da mettere in sessione";
+
+        return $scope.errorTextSpid[data];
+    };
+
+    var CODICE_FISCALE = "codice fiscale";
+    var USER_PROFILE_URL = "/shres/internal/userProfileJSON";
+
+    if ($(window).width() > 1199) {
+        $scope.reload = function (url) {
+            if ($location.absUrl().indexOf(url) > -1 && $location.absUrl().indexOf("filter") == -1) {
+                window.location.reload(true);
+            } else {
+                window.location.href = "/opencms/opencms/" + url;
+            }
+        }
+    }
+
+    var LOGIN_SUCCESS_DELTA = "/shres/internal/sessionProperty";
+    var LOGIN_SUCCESS_DELTA_2 = "data-ng-controller=\"MenuLateraleCtrl\"";
+    var LOGIN_ERROR_MESSAGE = "Errore in fase di login, controllare nome utente e password";
+
+    var MODAL_CONF = {
+
+        templateUrl: "/opencms/opencms/system/modules/my.template/resources/modalSedie.html",
+        bindToController: true,
+        controller: 'ModalInstanceCtrlSedie',
+        controllerAs: '$mc',
+        windowClass: 'app-modal-window-sedie',
+        backdrop: 'static',
+        keyboard: false,
+        resolve: {
+            items: function () {
+                var appo = {};
+                appo.listaSedia = $scope.model.listaSedia;
+                appo.personalInfo = $scope.model.personalInfoSession;
+                appo.sedieNames = $scope.model.sedieNames;
+                return appo;
+            }
+        }
+
+
+    };
+
+    var MODAL_CONF_PROFILOXS = {
+
+        templateUrl: "/opencms/opencms/system/modules/my.template/resources/modalProfilo.html",
+        bindToController: true,
+        controller: 'ModalInstanceCtrlProfilo',
+        controllerAs: '$mc',
+        windowClass: 'app-modal-window-sedie',
+        backdrop: 'static',
+        keyboard: false,
+        resolve: {
+            items: function () {
+                var appo = {};
+                appo.listaSedia = $scope.model.listaSedia;
+                appo.personalInfo = $scope.model.personalInfoSession;
+                appo.sedieNames = $scope.model.sedieNames;
+                return appo;
+            }
+        }
+
+
+    };
+
+    var MODAL_CONF_SPID = {
+
+        templateUrl: "/opencms/opencms/system/modules/my.template/resources/modalSpid.html",
+        bindToController: true,
+        controller: 'ModalInstanceCtrlSpid',
+        controllerAs: '$mc',
+        windowClass: 'app-modal-window-sedie',
+        backdrop: 'static',
+        keyboard: false,
+        resolve: {
+            items: function () {
+                var appo = {};
+                appo.spid = $scope.model.spid;
+                appo.errorCodeSpid = $scope.errorCodeSpid;
+                return appo;
+            }
+        }
+
+
+    };
+
+
+    $scope.personalInfoCallBack = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.personalInfoSession = data.payload;
+            var personal = angular.toJson($scope.model.personalInfoSession);
+            sessionStorage.setItem('personalInfo', personal);
+            var d = new Date();
+            sessionStorage.setItem('dateLogin', d.getTime());
+            $scope.model.userEnable = true;
+            //$scope.getNumLinkUtili();
+            //$scope.callServiceCounters();
+        }
+        else if (data.result.exitCode == EprocAAW.KO_CODE && data.result.text == EprocAAW.NO_JSON_ERR_MESS) {
+            //console.log("current session is NOT autheinticated");
+            $scope.model.userEnable = false;
+            sessionStorage.removeItem('personalInfo');
+        }
+        else {
+            //console.log("Service getuserinfo Error, current session is NOT autheinticated", data);
+            sessionStorage.removeItem('personalInfo');
+            $scope.model.userEnable = false;
+            //EprocAAW.handleError();
+        }
+    };
+
+
+
+
+    $scope.personalInfoCallBackSedie = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.personalInfoSession = data.payload;
+            //var personal = angular.toJson($scope.model.personalInfoSession);
+            //sessionStorage.setItem('personalInfo',personal);
+            //var d = new Date();
+            //sessionStorage.setItem('dateLogin',d.getTime());
+            //$scope.model.userEnable = true;
+            //$scope.getLinkUtili();
+            //$scope.callServiceCounters();
+            if ($scope.model.listaSedia.length > 1) {
+                var uiModal = showModal();
+            }
+        }
+        else if (data.result.exitCode == EprocAAW.KO_CODE && data.result.text == EprocAAW.NO_JSON_ERR_MESS) {
+            //console.log("current session is NOT autheinticated");
+            sessionStorage.removeItem('personalInfo');
+        }
+        else {
+            //console.log("Service getuserinfo Error, current session is NOT autheinticated", data);
+            sessionStorage.removeItem('personalInfo');
+            //EprocAAW.handleError();
+        }
+    };
+
+
+    // controllo lo stato autenticazione utente invocando la getUserInfo
+    var request = {
+        "uri": "/authservices/getUserInfo",
+        "method": "GET",
+        "input": {},
+        "callback": $scope.personalInfoCallBack
+    };
+
+    EprocAAW.callService(request, true);
+
+    $scope.sedieList = function () {
+
+        /*		var request = {
+                    "uri": "/opencms/opencms/system/modules/my.template/resources/getSedie.json",
+                    "method": "GET",
+                    "input": {},
+                    "callback": $scope.success
+                };
+                EprocAAW.callService(request); */
+
+
+        $scope.loginPromiseXs = $http({
+
+            //url:'/opencms/opencms/system/modules/my.template/resources/getSedie.json',
+            url: '/oam/server/authentication',
+            method: "POST",
+            //method:"GET",
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            data: "action=login&p_done_url=https://evo.acquistinretepa.it/opencms/opencms/main/areapersonale/homepageRedirect.jsp&cortesiaVis=S&cortesia_url=/opencms/opencms/main/areapersonale/cortesiaPage.jsp&username=" + $scope.model.userXS + "&password=" + $scope.model.passwordXS + "&successurl=https://evo.acquistinretepa.it/shres/internal/userProfile?output=json"
+        }).then($scope.success, $scope.failure);
+    };
+
+    $scope.selectedChairCallback = function (data) {
+        //console.log("selectedChairCallback's data", data);
+        window.location.reload();
+    };
+
+    $scope.sedieCallback = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.listaSedia = data.payload.sedie;
+            if ($scope.model.listaSedia.length == 1) {
+                if ($scope.view.isLoginDemanded === true) {
+                    // ajax call toward /internal/sessionProperty
+                    var request = {
+                        "uri": "/shres/internal/sessionProperty?sessid=" + $scope.model.listaSedia[0].sessionId,
+                        "method": "GET",
+                        "input": {},
+                        "callback": $scope.selectedChairCallback
+                    };
+                    EprocAAW.callService(request, false);
+                }
+                else {
+                    window.location.href = "/shres/internal/sessionProperty?sessid=" + $scope.model.listaSedia[0].sessionId;
+                }
+            } else {
+                //var uiModal = showModal();
+            }
+            /*var request = {
+                "uri": "/opencms/opencms/system/modules/my.template/resources/getPersonalInfo.json",
+                "method": "GET",
+                "input": {},
+                "callback": $scope.personalInfoCallBack
+            };
+        	
+            EprocAAW.callService(request); */
+        }
+        else {
+            //console.log(data);
+            //EprocAAW.handleError("Errore in fase di login, controllare nome utente e password");
+        }
+    };
+
+    $scope.tokenCallback = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            //console.log("getToken successfully called", data);
+            var request = {
+                "uri": "/authservices/getUserInfo",
+                "method": "GET",
+                "input": {},
+                "callback": $scope.personalInfoCallBackSedie
+            };
+
+            EprocAAW.callService(request);
+        }
+        else {
+            //console.log("getToken UNsuccessfully called", data);
+            //EprocAAW.handleError("Errore in fase di login, controllare nome utente e password");
+        }
+    };
+
+
+    $scope.success = function (data) {
+        /*if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.listaSedia = data.payload.sedie;
+
+            var request = {
+                "uri": "/opencms/opencms/system/modules/my.template/resources/getPersonalInfo.json",
+                "method": "GET",
+                "input": {},
+                "callback": $scope.personalInfoCallBack
+            };		
+        	
+            EprocAAW.callService(request);
+        }
+        else {
+            EprocAAW.handleError();
+        } */
+        //			if (data.result.exitCode == EprocAAW.OK_CODE) {
+        // /shres/internal/sessionProperty
+        var delta;
+        if (angular.isDefined(data.data) && angular.isDefined(data.data.result)) {
+            delta = data.data.result.exitCode;
+        }
+
+        if (angular.isDefined(delta) && delta == EprocAAW.OK_CODE) {
+            var requestToken = {
+                "uri": "/authservices/getToken ",
+                "method": "GET",
+                "input": {},
+                "callback": $scope.tokenCallback
+            };
+            EprocAAW.callService(requestToken, true);
+
+            /* var request = {
+                "uri": "/shres/internal/userProfileJSON",
+                "method": "GET",
+                "input": {},
+                "callback": $scope.sedieCallback
+            };
+            EprocAAW.callService(request); */
+            $scope.sedieCallback(data.data);
+        }
+        else {
+            // EprocAAW.handleError(LOGIN_ERROR_MESSAGE);
+            if (angular.isDefined(delta)) {
+                $scope.view.errorMessage = data.data.result.text;
+            }
+            else {
+                if (data.data != null && data.data.toLowerCase().indexOf(CODICE_FISCALE) != -1) {
+                    window.location.href = USER_PROFILE_URL;
+                }
+            }
+            $scope.model.hasError = true;
+        }
+    };
+
+    $scope.clearError = function () {
+        $scope.model.hasError = false;
+    }
+
+
+    $scope.failure = function (data) {
+        alert("Error HTTP: " + data.status + "\n check logs for details");
+        //console.log("data: ", data);
+    };
+
+    function showModal() {
+        //console.log("opening new modal");
+        var uiModal = $uibModal.open(MODAL_CONF);
+        return uiModal;
+    }
+
+    $scope.checkLogin = function (form) {
+        if (form.passwordXS.$valid && form.userXS.$valid) {
+            return false;
+        }
+        else {
+            return true;
+        }
+
+        //return form.password.$error.required && form.user.$error.required;
+        //return true;
+    }
+
+
+    // FINE LOGIN
+
+
+
+    $scope.entraSpidXsCallback = function (data) {
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.spid = data.payload.provider;
+            var uiModal = $uibModal.open(MODAL_CONF_SPID);
+            return uiModal;
+        } else {
+            EprocAAW.alertError(data.result.text);
+        }
+    }
+
+    $scope.entraSpidXs = function () {
+
+        var requestSpid = {
+            "uri": "/opencms/opencms/rifacimento_nuovo_portale/getSpidProvider.json",
+            "method": "GET",
+            "input": {},
+            "callback": $scope.entraSpidXsCallback
+        };
+
+        EprocAAW.callService(requestSpid, true);
+
+    };
+
+    $scope.linkSupporto = function () {
+        if ($scope.model.userEnable) {
+            $scope.model.user = angular.fromJson(sessionStorage.getItem('personalInfo'));
+
+            if ($scope.model.user.loginInfoBean.tipologiaUtente == 'IMPRESA') {
+                $window.location.href = "/opencms/opencms/Supporto_IM.html";
+            } else {
+                $window.location.href = "/opencms/opencms/Supporto_PA.html";
+            }
+        } else {
+            $window.location.href = "/opencms/opencms/Supporto_PA.html";
+        }
+
+    };
+
+    $scope.showProductCodes = function () {
+        var user = angular.fromJson(sessionStorage.getItem('personalInfo'));
+        var ret = false;
+
+        if (user != null) {
+            ret = true;
+        }
+        else {
+            ret = false;
+        }
+        return ret;
+    }
+
+
+    $scope.searchHeader = function () {
+        if (!angular.isDefined($scope.model.inputheader) || $scope.model.inputheader == null) {
+            $scope.model.emptyForm = true;
+        } else {
+            $scope.model.emptyForm = false;
+        }
+    };
+
+    $scope.searchHeaderlg = function () {
+        if (!angular.isDefined($scope.model.inputheaderlg) || $scope.model.inputheaderlg == null) {
+            $scope.model.emptyForm = true;
+        } else {
+            $scope.model.emptyForm = false;
+        }
+    };
+
+    $scope.searchHeaderXs = function (input) {
+        if ($scope.radioSearchXs == "Prodotti" && input.length > 1) {
+            $scope.searchProdotti(input);
+        } else if ($scope.radioSearchXs == "Codici" && input.length > 1) {
+            $scope.searchCodice(input);
+        } else if ($scope.radioSearchXs == "Info" && input.length > 1) {
+            $scope.searchDocs(input);
+        }
+    };
+
+    $scope.wordCount = function (input) {
+        if (!$scope.model.userEnable) {
+            var space = ' ';
+            $scope.maxWords = input.split(space);
+            if ($scope.maxWords.length > 5) {
+                $scope.model.inputheaderlg = input.substring(0, $scope.model.inputheaderlg.length - 1);
+            }
+        }
+    };
+
+    $scope.wordCountXs = function (input) {
+        if (!$scope.model.userEnable) {
+            var space = ' ';
+            $scope.maxWords = input.split(space);
+            if ($scope.maxWords.length > 5) {
+                $scope.model.inputheaderxs = input.substring(0, $scope.model.inputheaderxs.length - 1);
+            }
+        }
+    };
+
+    $scope.searchProdotti = function (input) {
+        sessionStorage.removeItem('jsonParamRicerca');
+        if ($scope.model.userEnable) {
+            if (!angular.isDefined(input) || input == null) {
+                $scope.model.emptyForm = true;
+            } else {
+                $scope.model.emptyForm = false;
+            }
+            if (input.length > 1) {
+                var json = JSON.stringify({
+                    query: input,
+                    tipoRicerca: 1,
+                    queryFormattata: input
+                });
+                sessionStorage.setItem('jsonParamRicerca', json);
+                sessionStorage.setItem('queryFormattata', input);
+
+                window.location.href = "/opencms/opencms/risultati_ricerche.html";
+            }
+        } else if ($scope.maxWords.length <= 5) {
+            if (input.length > 1) {
+                var json = JSON.stringify({
+                    query: input,
+                    tipoRicerca: 11,
+                    verso: true,
+                    refinement: [],
+                    pagina: "1",
+                    numeroElementi: 10,
+                    prezzoMin: "",
+                    prezzoMax: "",
+                    sort: "strumento"
+                });
+                sessionStorage.setItem('jsonRicercaAnonima', json);
+                window.location.href = "/opencms/opencms/ricerca_anonima.html";
+            }
+        } else {
+            EprocAAW.alertError("Errore di validazione. Non sono ammesse più 5 parole");
+        }
+    };
+
+    $scope.searchCodice = function (input) {
+        if (!angular.isDefined(input) || input == null) {
+            $scope.model.emptyForm = true;
+        } else {
+            $scope.model.emptyForm = false;
+        }
+
+        var json = JSON.stringify({
+            query: input,
+            tipoRicerca: 2,
+            queryFormattata: input
+        });
+        sessionStorage.setItem('jsonParamRicerca', json);
+        sessionStorage.setItem('queryFormattata', input);
+
+        window.location.href = "/opencms/opencms/risultati_ricerche.html";
+
+    }
+
+    $scope.searchDocs = function (input) {
+        if (!angular.isDefined(input) || input == null) {
+            $scope.model.emptyForm = true;
+        } else {
+            $scope.model.emptyForm = false;
+        }
+
+        var json = JSON.stringify({
+            query: input
+        });
+        sessionStorage.setItem('jsonParamRicerca', json);
+
+        window.location.href = "/opencms/opencms/ricerca_documentale.html";
+
+    }
+
+    $scope.menuClassHeader = function (page) {
+        var delta = "";
+        delta = document.getElementById("the-path-of-mine") != null ? document.getElementById("the-path-of-mine").value.toLowerCase() : "";
+        if (delta == page.toLowerCase()) {
+            return 'textViolet';
+        }
+        else {
+            return '';
+        }
+    };
+
+
+
+    /*	$scope.$watch('model.showSearch', function() {
+            console.log("model.showSearch watcher activated");
+            $scope.model.userEnable = sessionStorage.getItem('personalInfo') != null;
+            console.log("session: " + sessionStorage.getItem('personalInfo'));
+            console.log("boolean: " + sessionStorage.getItem('personalInfo') != null);
+            console.log("model.showSearch watcher ended");
+        });
+    */
+    $scope.toTop = function () {
+        $window.scrollTo(0, angular.element(document.getElementById('#backToTop')).offsetTop);
+    }
+
+
+    $scope.showSearchXs = function () {
+        $scope.model.showSearchXs = !$scope.model.showSearchXs;
+        $scope.model.showLoginPanelXs = false;
+        $scope.model.showCruscottoXs = false;
+        if ($scope.model.showSearchXs) {
+            $("div#searchXs").show();
+            if ($('.dl-trigger.dl-active').length) {
+                $timeout(function () {
+                    $("button#menuXs").trigger('click');
+                    $(".dl-trigger2").trigger('click');
+                });
+            }
+        }
+    }
+
+    $scope.showLoginXs = function () {
+        $scope.model.showLoginPanelXs = !$scope.model.showLoginPanelXs;
+        $scope.model.showSearchXs = false;
+
+        if ($scope.model.showLoginPanelXs) {
+            $("div#login-dp-xs").show();
+            if ($('.dl-trigger.dl-active').length) {
+                $timeout(function () {
+                    $("button#menuXs").trigger('click');
+                    $(".dl-trigger1").trigger('click');
+                });
+            }
+        }
+    };
+
+    $scope.showCruscottoXs = function () {
+        $scope.model.showCruscottoXs = !$scope.model.showCruscottoXs;
+        $scope.model.showSearchXs = false;
+
+        if ($scope.model.showCruscottoXs) {
+            $("div#cruscottoXs").show();
+            if ($('.dl-trigger.dl-active').length) {
+                $timeout(function () {
+                    $("button#menuXs").trigger('click');
+                    $(".dl-trigger3").trigger('click');
+                });
+            }
+        }
+    }
+
+    $scope.openMenuXs = function () {
+        $scope.model.showSearchXs = false;
+        $scope.model.showLoginPanelXs = false;
+        $scope.model.showCruscottoXs = false;
+    }
+
+
+    if ($(window).width() < 768) {
+
+        $(window).scroll(function (event) {
+            $scope.didScroll = true;
+            if (document.documentElement.scrollTop > 165) {
+                $("div#searchXs").hide();
+                $("div#cruscottoXs").hide();
+                $("div#login-dp-xs").hide();
+                $scope.model.showSearchXs = false;
+                $scope.model.showLoginPanelXs = false;
+                $scope.model.showCruscottoXs = false;
+                if ($('.dl-active').length) {
+                    $("button#menuXs").trigger('click');
+                }
+
+            }
+        });
+
+        $(window).click(function () {
+            $("div#searchXs").hide();
+            $("div#cruscottoXs").hide();
+            $("div#login-dp-xs").hide();
+            $scope.model.showSearchXs = false;
+            $scope.model.showLoginPanelXs = false;
+            $scope.model.showCruscottoXs = false;
+            if ($('.dl-active').length) {
+                $("button#menuXs").trigger('click');
+            }
+        });
+
+        $('header').click(function (event) {
+            event.stopPropagation();
+        });
+
+
+        setInterval(function () {
+            if ($scope.didScroll) {
+                $scope.didScroll = false;
+            }
+        }, 50);
+
+        $scope.$on("loginRequired", function () {
+            $timeout(function () {
+                $("button#buttonLoginXs").trigger('click');
+            }, 1);
+        });
+
+        $scope.showModalProfiloXs = function () {
+            //console.log("opening new modal");
+            var uiModal = $uibModal.open(MODAL_CONF_PROFILOXS);
+            return uiModal;
+        }
+
+
+    };
+
+    if ($(window).width() > 767) {
+        $(window).scroll(function (event) {
+            if (document.documentElement.scrollTop < 100) {
+                $("div#backToTop").removeClass('show').addClass('hidden');
+            }
+            if (document.documentElement.scrollTop > 200) {
+                $("div#backToTop").removeClass('hidden').addClass('show');
+            };
+        });
+    }
+
+
+    //submit search imput con enter
+    //$("#headersearchformlg").bind("keydown", {}, keypressInBox);
+
+    $scope.view.searchSlots = [
+        {
+            "selected": false,
+            "action": $scope.searchProdotti
+        }, {
+            "selected": false,
+            "action": $scope.searchCodice
+        }, {
+            "selected": false,
+            "action": $scope.searchDocs
+        }
+    ];
+    var selectedIndex = -1;
+
+    $scope.keypressInBox = function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        var enter = 13;
+        var up = 38;
+        var down = 40;
+        var isUserLoggedIn = $scope.showProductCodes();
+        var i = 0;
+
+        if (code == enter || code == up || code == down) {
+            e.preventDefault();
+        }
+
+        if (code == up) {
+            $scope.codeUp(e);
+        }
+
+        if (code == down) {
+            $scope.codeDown(e);
+        }
+
+        for (i = 0; i < $scope.view.searchSlots.length; i++) {
+            $scope.view.searchSlots[i].selected = false;
+        }
+
+        if (selectedIndex >= 0) {
+            $scope.view.searchSlots[selectedIndex].selected = true;
+        }
+
+        if (code == enter) {
+            $scope.codeEnter(e);
+        }
+    };
+
+
+    $scope.codeUp = function (e) {
+        
+        var isUserLoggedIn = $scope.showProductCodes();
+
+        selectedIndex -= 1;
+        if (selectedIndex < 0) {
+            selectedIndex = 2;
+        }
+        if (selectedIndex == 1 && isUserLoggedIn == false) {
+            selectedIndex = 0;
+        }
+    }
+
+    $scope.codeDown = function (e) {
+        
+        var isUserLoggedIn = $scope.showProductCodes();
+
+        selectedIndex += 1;
+        if (selectedIndex > 2) {
+            selectedIndex = 0;
+        }
+        if (selectedIndex == 1 && isUserLoggedIn == false) {
+            selectedIndex = 2;
+        }
+    }
+
+    $scope.codeEnter = function (e) {
+        if (selectedIndex != -1) {
+            $scope.view.searchSlots[selectedIndex].action.call(null, $scope.model.inputheaderlg);
+        }
+        else {
+            $scope.searchProdotti($scope.model.inputheaderlg);
+        }
+    }
+
+});
+eprocApp.controller('CatalogMenuController', function ($scope, EprocAAW, $filter) {
+    $scope.model = {};
+    $scope.model.categories = [];
+    $scope.view = {};
+    $scope.view.categoriesCol1 = [];
+    $scope.view.categoriesCol2 = [];
+    $scope.view.categoriesCol3 = [];
+
+    var COL1_LIMIT = 6;
+    var COL2_LIMIT = 12;
+    // we don't need col3_limit because it will be the length of the orginal array
+
+    $scope.categoriesCallback = function (data) {
+        // divide the categories in columns
+        if (data.result.exitCode == EprocAAW.OK_CODE) {
+            $scope.model.elencoCategorie = $filter('orderBy')(data.payload.elencoCategorie, 'titoloCategoria');
+            if ($scope.model.elencoCategorie.length >= COL1_LIMIT && $scope.model.elencoCategorie.length < COL2_LIMIT) {
+                $scope.view.categoriesCol1 = $scope.model.elencoCategorie.slice(0, COL1_LIMIT);
+                $scope.view.categoriesCol2 = $scope.model.elencoCategorie.slice(COL1_LIMIT, $scope.model.elencoCategorie.length);
+            }
+            else if ($scope.model.elencoCategorie.length >= COL1_LIMIT && $scope.model.elencoCategorie.length >= COL2_LIMIT) {
+                $scope.view.categoriesCol1 = $scope.model.elencoCategorie.slice(0, COL1_LIMIT);
+                $scope.view.categoriesCol2 = $scope.model.elencoCategorie.slice(COL1_LIMIT, COL2_LIMIT);
+                $scope.view.categoriesCol3 = $scope.model.elencoCategorie.slice(COL2_LIMIT, $scope.model.elencoCategorie.length);
+            }
+            else if ($scope.model.elencoCategorie.length < COL1_LIMIT) {
+                $scope.view.categoriesCol1 = $scope.model.elencoCategorie.slice(0, COL1_LIMIT);
+            }
+        }
+        else {
+            console.log(data.result.exitCode + " Errore Caricamento categorie del menu");
+        }
+    };
+
+    // get categories from BE
+    var request2 = {
+        "uri": "/catalogoservices/getCategoriaProdottiMenu",
+        "method": "GET",
+        "input": {},
+        "callback": $scope.categoriesCallback
+    };
+    EprocAAW.callService(request2, true);
+});

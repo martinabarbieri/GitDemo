@@ -1,0 +1,555 @@
+angular.module("EprocA", ["ui.bootstrap", "angularSpinner", "cgBusy", "timer"])
+.service("EprocAAW", function($http, $exceptionHandler, $uibModal, usSpinnerService, $window, $interval, $document,$timeout) {
+	this.today = "today";
+	this.OK_TEXT = "OK";
+	var EXIT_CODE_EPROC2 = '1000';
+	var EXIT_CODE_LIST_EPROC2 = '2001';
+	this.OK_CODE = "200";
+	this.KO_CODE = "500";
+	this.NOT_AUTHORIZED_CODE = "403";
+	this.USER_NOT_AUTHORIZED = "1003";
+	this.FUNZIONE_GARA_NON_ABILITATA = "1020";
+	this.NO_LOGIN_CODE = "1002";
+	this.NOT_FOUND_CODE = "404";
+	this.BAD_REQUEST_CODE = "400";
+	this.SERVICE_UNAV_CODE = "503";
+	var KO_CODE = "500";
+	var NOT_AUTHORIZED_CODE = "403";
+	this.NO_JSON_ERR_MESS = "Ricevuta risposta dal server non riconducibile ad un json";
+	var NO_JSON_ERR_MESS = "Ricevuta risposta dal server non riconducibile ad un json";
+	var POST = "POST";
+	var sportelliData = [{}];
+	var showLogin = false;
+	var append = angular.element($document[0].querySelector('#my-modal-parent'));
+	this.NUMERIC_VALUE = "Il valore deve essere numerico";
+	this.ID_NOT_VALID = "Il valore del campo ID non è valido. ";
+	this.CAMPO_NOME_NOT_VALID = "Il valore del campo NOME non è valido. ";
+	this.CAMPO_VALORE2_NOT_VALID = "Il campo VALORE 2 non è valido";
+	this.CAMPO_VALORE1_NOT_VALID = "Il campo VALORE 1 non è valido";
+	this.CAMPO_DESCRIZIONE_NOT_VALID = "Il valore del campo DESCRIZIONE non è valido. ";
+	this.ERROR_DATE = "data a non può essere antecedente a data da ";
+	this.regexList = {"INPUT_EMPTY_OR_NUMERIC" : "^$|^[0-9]+$",
+			"INPUT_EMPTY_OR_ALPHANUM_AND_SPECIAL_CHARS" : "^$|^[ a-zA-Z0-9!\"£$%&/()=?^'ìé*ç°|<>§;:_è+òàù,.\\[\\]@#€\\\\-]+$"};
+
+	this.msgErrors = {
+			"required" : "Il campo è obbligatorio.",
+			"maxlength" : "Superato il numero massimo di caratteri.",
+			"minlength" : "Non è stato raggiunto il numero minimo di caratteri",
+			"pattern" : "Sono stati inseriti caratteri speciali non previsti.",
+			"nome-required" : 'Il campo "Nome" è obbligatorio',
+			"descrizione-required" : 'Il campo "Descrizione" è obbligatorio',
+			"tipo-required" : 'Il campo "Tipo" è obbligatorio',
+			"formato-required" : 'Il campo "Formato" è obbligatorio',
+			"dimensione-required" : 'Il campo "Dimensione" è obbligatorio',
+            "numeroLotto-required" : 'Il campo "Numero Lotto" è obbligatorio',
+            "nomeLotto-required" : 'Il campo "Nome Lotto" è obbligatorio',
+            "numMesiDurataContratto-required" : 'Il campo "Durata Contratto (Mesi)" è obbligatorio',
+            "codiceCig-required" : 'Il campo "CIG" è obbligatorio',
+            "tipoImportoLotto-required" : 'Il campo "Valore" è obbligatorio',
+            "importoLotto-required" : 'Il campo "Valore in €" è obbligatorio',
+            "punteggioMassimo-required" : 'Il punteggio massimo non può essere vuoto',
+            "punteggioTecnMassimo-required" : 'Il punteggio tecnico massimo non può essere vuoto',
+            "punteggioEcoMassimo-required" : 'Il punteggio economico massimo non può essere vuoto',
+            "nomeGara-required" : 'Il campo "Nome Gara" è obbligatorio',
+            "tipologiaContratto-required" : 'Il campo "Tipologia di contratto" è obbligatorio',
+            "tipologiaProcedura-required" : 'Il campo "Tipologia di procedura" è obbligatorio',
+            "nrGaraRif-required" : 'Il campo "Numero gara di riferimento" è obbligatorio',
+            "categoriaMerc-required" : 'Il campo "Categoria di vetrina" è obbligatorio',
+            "multilotto-required" : 'Il campo "Lotti" è obbligatorio',
+            "criterioAggiudicUnico-required" : 'Il campo "Criterio di aggiudicazione" è obbligatorio',
+            "criterioAggiudicazione-required" : 'Il campo "Criterio di aggiudicazione" è obbligatorio',
+            "numeroLotti-required" : 'Il campo "Numero lotti" è obbligatorio',
+            "oggetto-required" : 'Il campo "Oggetto" è obbligatorio',
+            "testo-required" : 'Il campo "Testo" è obbligatorio'
+		};
+
+	var MODAL_CONF = {
+			animation: true,
+			templateUrl: './views/common/spinnerBig.html',
+		 	windowTemplateUrl: './views/common/spinnerBig.html',
+			backdrop: true,
+			backdropClass: "grey-bg",
+			windowClass: "loadingPosition",
+			keyboard: false
+	};
+	var URIMapper = {};
+	this.messageConfirm = "Si vuole procedere con l'operazione richiesta?";
+	this.messageConfirmLotti = "Sei sicuro di portare in lavorazione i seguenti lotti?";
+	//this.redirectF5Ssa = "/eproc2/#!/menuSsa";
+	this.redirectF5Ssa = "/opencms/opencms/index.html";
+
+	/*
+	 *
+	 * Esempio di input
+	 {
+		"uri": "/acquistinretepa/app/iniziative/getdettaglioiniziativa",
+		"method": "POST",
+		"input": {"idIniziativa": 1234},
+		"callback": "iniziativeCallback"
+	 }
+	 *
+	 */
+	this.isUserAuthenticated = function() {
+		return sessionStorage.getItem('personalInfo') != null;
+	};
+
+	this.setSportelliData = function(theData) {
+		sportelliData = theData;
+	};
+
+	this.getSportelliData = function() {
+		return sportelliData;
+	};
+
+	this.setShowLogin = function(show) {
+		showLogin = show;
+	}
+
+	this.getShowLogin = function() {
+		return showLogin;
+	}
+
+	this.handleError = function(errorMess) {
+		if (angular.isUndefined(errorMess)) {
+			errorMess = "Errore!";
+		}
+		alert(errorMess);
+	};
+
+
+	this.callService = function(request, hideSpinner) {
+		/*
+		 * 1. distinguere tra get, post e mock (get verso uno staticone)
+		 * 2. effettuare chiamata in base al punto 1 attivando lo spinner
+		 * 3. gestire callback interna e callback passata in input disattivando lo spinner
+		 */
+		var theErr;
+		var method;
+		var conf = {};
+		var theUrl = null;
+		theErr = validateRequest(request);
+		if (theErr != null) {
+			raiseError(theErr);
+		}
+		else {
+			method = (angular.isDefined(request.method) && request.method != null) ? request.method : POST;
+			//$http(req).then(function(){...}, function(){...});
+			// getting the url to call
+			if (angular.isDefined(URIMapper[request.uri])) {
+				if (URIMapper[request.uri].isMocked) {
+					// console.log("Service mocked, the sent URI will be used as is");
+					theUrl = request.uri;
+				}
+				else {
+					if (angular.isDefined(URIMapper[request.uri].url) && URIMapper[request.uri].url.length > 0) {
+						// console.log("The Service is NOT mocked, the url mapped is defined and will be used");
+						theUrl = URIMapper[request.uri].url;
+					}
+					else {
+						// console.log("The Service is NOT mocked, BUT the url mapped is not defined, the sent URI will be used as is");
+						theUrl = request.uri;
+					}
+				}
+				theUrl = URIMapper[request.uri].isMocked ? request.uri : URIMapper[request.uri].url;
+			}
+			else {
+				// console.log("Url not mapped inside the service, the sent URI will be used as is");
+				theUrl = request.uri;
+			}
+
+			conf = {
+					method: method,
+					url: theUrl,
+					data: request.input,
+					headers: request.headers			// TEMP NON PUSHARE
+			};
+			console.log("Calling service with this conf", conf);
+			if (hideSpinner === true) {
+				var uiModal = null;
+			}
+			else {
+				var uiModal = showSpinner();
+			}
+			timeout = timeoutOrigin;
+			return $http(conf).then(function(response) {handleSuccess(response, request, uiModal, KO_CODE, NO_JSON_ERR_MESS);}, function(response) {handleFailure(response, request, uiModal);});
+		}
+	};
+
+	this.alertError = function(request) {
+		return $uibModal.open({
+			templateUrl: "./views/common/modalError.html",
+			show: false,
+			backdrop: 'static',
+			keyboard: false,
+			controller: function($scope,$uibModalInstance) {
+				$scope.showError = request;
+
+				$scope.closeModal = function() {
+					$uibModalInstance.close(false);
+				}
+			}
+		})
+		.result.then(function () {
+            console.log('Modal error dismissed');
+        },function () {
+			console.log('Modal error dismissed');
+         });
+	}
+
+	this.alertWarning = function(request, modelName) {
+	if(angular.isUndefined(request.props)){
+		return $uibModal.open({
+			templateUrl: "./views/common/modalWarning.html",
+			show: false,
+			backdrop: 'static',
+			keyboard: false,
+			controller: function($scope,$uibModalInstance) {
+				$scope.showError = request;
+
+				$scope.closeModal = function() {
+					$uibModalInstance.close(false);
+				}
+			}
+		})
+		.result.then(function () {
+            console.log('Modal warning dismissed');
+        },function () {
+			console.log('Modal warning dismissed');
+         });
+	} else {
+		return $uibModal.open({
+			templateUrl: "./views/common/modalBadParams.html",
+			show: false,
+			backdrop: 'static',
+			keyboard: false,
+			controller: function($scope,$uibModalInstance) {
+				var error = "<ul>";
+				for (var key in request.props) {
+                    if (request.props.hasOwnProperty(key)) {
+                        error += "<li>" + request.props[key] + "</li>";
+                    }
+                }
+                error += "</ul>";
+				$scope.showError = error;
+
+				$scope.closeModal = function() {
+					$uibModalInstance.close(false);
+				}
+			}
+		})
+		.result.then(function () {
+            console.log('Modal bad params dismissed');
+        },function () {
+			console.log('Modal bad params dismissed');
+         });
+	}
+
+	}
+
+	this.alertSuccess = function(request) {
+		return $uibModal.open({
+			templateUrl: "./views/common/modalSuccess.html",
+			show: false,
+			backdrop: 'static',
+			keyboard: false,
+			controller: function($scope,$uibModalInstance) {
+				$scope.showMessage = request;
+
+				$scope.closeModal = function() {
+					$uibModalInstance.close(false);
+				}
+				$timeout(function() {
+					$uibModalInstance.dismiss();
+				}, 3000)
+			}
+		});
+	}
+
+	//ANTONIO DE CHIARA INIZIO
+	this.triggerLogin = function($rootScope,$window){
+		$rootScope.$broadcast('loginRequired');
+		$window.scrollTo(0, angular.element(document.getElementById('#loginContainer')).offsetTop);
+	}
+	//ANTONIO DE CHIARA FINE
+
+
+
+	// ***** UTILS FUNCTIONS ****** //
+	function showSpinner() {
+		console.log("opening new modal");
+		var uiModal = $uibModal.open(MODAL_CONF);
+
+		// if something goes wrong the spinner is hidden within the given timeout
+		$timeout(function() {hideSpinner(uiModal);}, 5000);
+		return uiModal;
+	}
+
+	function hideSpinner(uiModal) {
+		if (uiModal != null) {
+			console.log("Closing modal");
+			uiModal.close();
+		}
+	}
+
+	function handleSuccess(response, request, uiModal, KO_CODE, NO_JSON_ERR_MESS) {
+		/*
+		 * The response object has these properties:
+		    data – {string|Object} – The response body transformed with the transform functions.
+		    status – {number} – HTTP status code of the response.
+		    headers – {function([headerName])} – Header getter function.
+		    config – {Object} – The configuration object that was used to generate the request.
+		    statusText – {string} – HTTP status text of the response.
+		 */
+		console.log("Success callback");
+		if (angular.isUndefined(response.data.result)) {
+			// Se l'attributo result non è definito ci troviamo molto probabilmente in un caso in cui non stiamo ricevendo una risposta JSON, di conseguenza solleviamo errore
+			response.data = {};
+			response.data.result = {};
+			response.data.result.exitCode = KO_CODE;
+			response.data.result.text = NO_JSON_ERR_MESS;
+		}
+		// Invalid Token
+		if (response.status == 403) {
+			// Could not verify the provided CSRF token because your session was not found.
+			response.data = {};
+			response.data.result = {};
+			response.data.result.exitCode = NOT_AUTHORIZED_CODE;
+			response.data.result.text = "Invalid Token";
+		}
+
+		request.callback(unEscapeJSONHE(response.data));
+		hideSpinner(uiModal);
+	}
+
+	function handleFailure(response, request, uiModal) {
+		/*
+		   The response object has these properties:
+		    data – {string|Object} – The response body transformed with the transform functions.
+		    status – {number} – HTTP status code of the response.
+		    headers – {function([headerName])} – Header getter function.
+		    config – {Object} – The configuration object that was used to generate the request.
+		    statusText – {string} – HTTP status text of the response.
+		 */
+		console.log("Failure callback");
+		if (angular.isUndefined(response.data.result)) {
+			// Se l'attributo result non è definito ci troviamo molto probabilmente in un caso in cui non stiamo ricevendo una risposta JSON, di conseguenza solleviamo errore
+			response.data = {};
+			response.data.result = {};
+			response.data.result.exitCode = KO_CODE;
+			response.data.result.text = NO_JSON_ERR_MESS;
+		}
+		// Invalid Token
+		if (response.status == 403) {
+			// Could not verify the provided CSRF token because your session was not found.
+			response.data = {};
+			response.data.result = {};
+			response.data.result.exitCode = NOT_AUTHORIZED_CODE;
+			response.data.result.text = "Invalid Token";
+		}
+		response.data.result.exitCode = response.status;
+		response.data.result.text = response.statusText;
+		request.callback(response.data);
+		hideSpinner(uiModal);
+	}
+
+
+	function validateRequest(request) {
+		var errorString = "";
+		var theErr = null;
+
+		if (angular.isUndefined(request) || request == null) {
+			errorString = generateError("Input request is Undefined or NULL");
+		}
+		else {
+			if (angular.isUndefined(request.uri) || request.uri == null) {
+				errorString += "Input request's uri prop is Undefined or NULL\n";
+			}
+			if (angular.isUndefined(request.callback) || request.callback == null) {
+				errorString += "Input request's callback prop is Undefined or NULL\n";
+			}
+		}
+
+		if (errorString.length > 0) {
+			theErr = generateError(errorString);
+		}
+
+		return theErr;
+	}
+
+	function generateError(message) {
+		var ret = new Error();
+		ret.message = message;
+		return ret;
+	}
+
+	function raiseError(err) {
+		if (angular.isDefined(err)) {
+			$exceptionHandler(err);
+		}
+		else {
+			var theErr = new Error();
+			theErr.message = "Errore generico!";
+			$exceptionHandler(theErr, "ERRORE");
+		}
+	}
+
+	this.valutazioneResult = function(response, deferred) {
+		if (response.result.exitCode == this.OK_CODE) {
+			deferred.resolve(response);
+		} else if (response.result.exitCode == this.BAD_REQUEST_CODE){
+			deferred.notify(response.payload);
+		}else if(response.result.exitCode == "20039") {
+			deferred.notify(response.result);
+		} else if ((parseInt(response.result.exitCode) >= parseInt(EXIT_CODE_EPROC2)) && (parseInt(response.result.exitCode) != parseInt(EXIT_CODE_LIST_EPROC2))) {
+			deferred.notify(response.result.text);
+		} else if (parseInt(response.result.exitCode) == parseInt(EXIT_CODE_LIST_EPROC2)) {
+			deferred.notify(response);
+		}else {
+			deferred.reject("Errore di sistema!");
+		}
+	};
+
+	this.alertConfirm = function(message, nameFunction) {
+		return $uibModal.open({
+			templateUrl: "./views/common/modalConfirm.html",
+			show: false,
+			backdrop: 'static',
+			keyboard: false,
+			controller: function($scope, $uibModalInstance) {
+				$scope.bottonFunction = nameFunction;
+				$scope.labelMessage = message;
+				$scope.confermaOperazione = function() {
+					$scope.closeModal();
+					$scope.bottonFunction();
+				}
+				$scope.closeModal = function() {
+					$uibModalInstance.close(false);
+				}
+			}
+		})
+		.result.then(function () {
+            console.log('Modal confirm dismissed');
+        },function () {
+			console.log('Modal confirm dismissed');
+         });
+	}
+
+	this.openProfilo = function(request) {
+
+		return $uibModal.open({
+				templateUrl: "/opencms/opencms/system/modules/my.template/resources/modalProfilo.html",
+				show: false,
+				backdrop: 'static',
+				windowClass: 'app-modal-window-profilo',
+				keyboard: false,
+				controller: function($scope,$uibModalInstance,$window) {
+
+				$scope.personal = JSON.parse($window.sessionStorage.getItem("personalInfo"));
+
+				$scope.cancelProfilo = function() {
+					$uibModalInstance.dismiss('cancel');
+				}
+			 }
+		});
+	}
+
+	function unEscapeJSONHE(obj) {
+		return JSON.parse(JSON.stringify(obj),
+		function unEscapeValue(key,value){
+			if(typeof value === 'string'){
+				return he.decode(value);
+			}
+			return value;
+		 });
+	 }
+
+	//gestione timeout di sessione - INIZIO
+	function logout() {
+		$window.location.href = "/shres/logout.portal?user_name=" + this.username + "&landing_code=WP001";
+	}
+
+	var timeout = 0;
+	var timeoutOrigin = 0;
+	var popupSi = false;
+
+	function callDecremenTimeout () {
+		if(timeout > 0) {
+			timeout = timeout - 30;
+			if(timeout <= this.timeAlert && !popupSi) {
+				popupSi = true;
+				var minutiRimanenti = parseInt(this.timeAlert);
+				return $uibModal.open({
+					templateUrl: "./views/common/modalTimeout.html",
+					show: false,
+					backdrop: 'static',
+					keyboard: false,
+					controller: function($scope, $uibModalInstance) {
+						$scope.minutiRimanenti = minutiRimanenti;
+						$scope.esciLogout = function() {
+							$scope.closeModal();
+							logout();
+						}
+						$scope.confermaOperazione = function() {
+							$scope.closeModal();
+							resetTimeout();
+						}
+						$scope.closeModal = function() {
+							$uibModalInstance.close(false);
+						}
+					}
+				});
+			}
+		}else {
+			logout();
+		}
+	}
+
+	function resetTimeout() {
+		$http.get("/eproc2/dizionariservices/getSessionTimeInfo")
+		.then(function(response) {
+				popupSi = false;
+				timeout = response.data.payload.sessionTimeout;
+				timeoutOrigin = response.data.payload.sessionTimeout;
+				this.timeAlert = response.data.payload.alertTime;
+				this.username = response.data.payload.username;
+				$interval(callDecremenTimeout, 30000);
+			},
+			function(response) {
+				//non viene attivato il timer
+			})
+	}
+
+	resetTimeout ();
+	//gestione timeout di sessione - FINE
+
+
+		this.alertConfirmList = function(message, list, nameFunction) {
+			return $uibModal.open({
+				templateUrl: "./views/common/modalConfirmList.html",
+				show: false,
+				backdrop: 'static',
+				keyboard: false,
+				controller: function($scope, $uibModalInstance) {
+					$scope.elementList = [];
+					$scope.bottonFunction = nameFunction;
+					$scope.labelMessage = message;
+					for (var i=0; list.length > i; i++) {
+						$scope.elementList.push(list[i]);
+					}
+
+					$scope.confermaOperazione = function() {
+						$scope.closeModal();
+						$scope.bottonFunction();
+					}
+					$scope.closeModal = function() {
+						$uibModalInstance.close(false);
+					}
+				}
+			})
+			.result.then(function () {
+				console.log('Modal confirmlist dismissed');
+			},function () {
+				console.log('Modal confirmlist dismissed');
+			 });
+		}
+});

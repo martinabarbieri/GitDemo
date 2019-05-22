@@ -1,0 +1,333 @@
+<script>
+    //cookies inizio
+    jQuery(function($) {
+
+        checkCookie_eu();
+
+        function checkCookie_eu()
+        {
+
+            var consent = getCookie_eu("cookies_consent");
+
+            if (consent == null || consent == "" || consent == undefined)
+            {
+                // show notification bar
+                $('#cookie_directive_container').show();
+            }
+
+        }
+
+        function setCookie_eu(c_name,value,exdays)
+        {
+
+            var exdate = new Date();
+            exdate.setDate(exdate.getDate() + exdays);
+            var c_value =  encodeURI(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+            document.cookie = c_name + "=" + c_value+"; path=/";
+
+            $('#cookie_directive_container').hide('slow');
+        }
+
+
+        function getCookie_eu(c_name)
+        {
+            var i,x,y,ARRcookies=document.cookie.split(";");
+            for (i=0;i<ARRcookies.length;i++)
+            {
+                x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+                y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+                x=x.replace(/^\s+|\s+$/g,"");
+                if (x==c_name)
+                {
+                    return unescape(y);
+                }
+            }
+        }
+
+        $("#cookie_accept").click(function(){
+            setCookie_eu("cookies_consent", 1, 30);
+        });
+
+    });
+    //cookies fine
+    </script>
+
+<footer id="footerWrapper" class="footer4">
+    <div id="cookie_directive_container" class="container" style="display: none">
+        <nav class="navbar navbar-default navbar-fixed-bottom" style="background-color:#000000; min-height:80px;">
+
+            <div class="container">
+                <div class="navbar-inner navbar-content-center">
+                    <div>
+                        <p class="col-xs-12 col-sm-10 col-lg-11 font-default" style="color: #ffffff; margin-top:15px;">
+                            Questo sito utilizza cookie per rendere più agevole la navigazione e garantire la fruizione dei servizi. Se vuoi saperne
+                            di più
+                            <a href="/opencms/opencms/cookie.html" style="color: #ffffff;">
+                                <strong>
+                                    <u>clicca qui.</u>
+                                </strong>
+                            </a>
+                            <br/> Chiudendo questo banner acconsenti all'uso dei cookie.
+                        </p>
+                        <a href="#" class="col-xs-4 col-xs-offset-4 col-sm-2 col-lg-1 col-sm-offset-0 btn btn-secondario bottom10-xs" style="background-color:#ffffff; margin-top: 24px; border-color:#ffffff; border-width: 1px;"
+                            tabindex="1" id="cookie_accept">CHIUDI</a>
+                    </div>
+
+                    <br>
+
+                </div>
+            </div>
+
+        </nav>
+    </div>
+
+    <section id="mainFooter">
+        <div class="container">
+
+
+            <div class="row" data-ng-controller="footerCtrl">
+                <div class="col-xs-12 visible-xs">
+                    <div class="footerWidget">
+                        <h3 class="footer-title">Contatti</h3>
+                        <div class="footer-text italic-ized licustom">dal lunedi al venerdi dalle 9.00 alle 18.00</div>
+                        <div class="footer-text left-phone-icon licustom">PA
+                            <span class="footer-text bold-ized" style="margin-left:20px">{{numeroVerdePA}}</span>
+                            <br>
+                            <span class="footer-small">(numero verde unico)</span>
+                        </div>
+                        <div class="footer-text left-phone-icon licustom">IMPRESE
+                            <span class="footer-text bold-ized" style="margin-left:20px">{{numeroVerdeIM}}</span>
+                            <br>
+                            <span class="footer-small">(per malfunzionamenti sul Portale Acquisti in Rete)</span>
+                        </div>
+                        <div class="footer-text">Vedi tutti i contatti</div>
+
+                    </div>
+                </div>
+                <div class="col-xs-12 visible-xs">
+                    <div class="footerWidget">
+                        <div class="footer-title" style="margin-bottom:25px">Seguici su</div>
+
+                        <div class="col-sm-12 nopadding">
+                            <a href="https://www.youtube.com/channel/UC426hjPolvTwyVPiTHyyhFg" target="_blank">
+                                <!-- <img alt="youtube" style="width:30px; height:30px; border-radius: 8px;" src="/opencms/opencms/system/modules/my.template/resources/img/untitled-24.svg" -->
+                                    target="_blank">
+                                <span style="color:white;">&nbsp;&nbsp; YouTube </span>
+                            </a>
+                        </div>
+                        <div class="col-sm-12 nopadding voffset3">
+                            <a href="https://twitter.com/Consip_Spa?ref_src=twsrc%5Etfw" target="_blank">
+                                <!-- <img alt="twitter" style="width:30px; height:30px;" src="/opencms/opencms/system/modules/my.template/resources/img/twitter_xdef1x.svg" -->
+                                    target="_blank">
+                                <span style="color:white;">&nbsp;&nbsp; Twitter </span>
+                            </a>
+                        </div>
+                        <div class="col-sm-12 nopadding voffset3">
+                            <a href="https://t.me/ConsipSpa" target="_blank">
+                                <!-- <img alt="telegram" style="width:30px; height:30px;" src="/opencms/opencms/system/modules/my.template/resources/img/telegram.svg" -->
+                                    target="_blank">
+                                <span style="color:white;">&nbsp;&nbsp; Telegram </span>
+                            </a>
+                        </div>
+                        <!--
+                        <div class="col-sm-12 nopadding voffset3">
+                            <a href="https://t.me/ConsipSpa" target="_blank">
+                                <img src="/opencms/opencms/system/modules/my.template/resources/img/in-box-variations.png">
+                                <span style="color:white;">&nbsp;&nbsp; Linkedin </span>
+                            </a>
+                        </div>
+                    -->
+
+                        <!--<ul class="list-unstyled iconList borderList">-->
+                        <!-- <li  class="licustom"><a href="<cms:link>%(link.weak:/newsletter.html:8d101b52-a4ce-11e6-8744-2df343192d3f)</cms:link>" style="color: white;">Newsletter</a></li> -->
+                        <!--<li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding"><a class="footerLink" href="<cms:link>%(link.weak:/manutenzione.html:9ff177ae-c1f1-11e6-9a49-adcb1677e681)</cms:link>" style="color: white;">Manutenzione</a></li>-->
+                        <!--<li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding"><a class="footerLink" href="<cms:link>%(link.weak:/accessibilita.html:60e80a7e-c20a-11e6-9a49-adcb1677e681)</cms:link>" style="color: white;">Accessibilità</a></li>-->
+                        <!--	<li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding"><a href="#" style="color: white;">Mappa del Portale</a></li>  -->
+                        <!--<li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding"><a class="footerLink" href="<cms:link>%(link.weak:/note_legali/responsabilita.html)</cms:link>" style="color: white;">Note Legali</a></li>-->
+                        <!--</ul>-->
+                    </div>
+                </div>
+                <div class="col-xs-12 visible-xs" style="margin-bottom:70px">
+                    <uib-accordion close-others="oneAtATime">
+
+                        <div data-uib-accordion-group class="borderAll" style="background: none" data-is-open="status.isFirstOpen">
+                            <uib-accordion-heading class="col-xs-12">
+                                <div class="fontWhite">Link Veloci
+                                    <em data-class="pull-right fontWhite glyphicon" data-ng-class="{'glyphicon glyphicon-chevron-down': status.isFirstOpen, 'glyphicon glyphicon-chevron-right': !status.isFirstOpen}"></em>
+                                </div>
+                            </uib-accordion-heading>
+                            <ul class="list-unstyled iconList borderList">
+                                <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                    <a href="/opencms/opencms/vetrina_iniziative.html" style="color: white;">Vetrina Iniziative</a>
+                                </li>
+                                <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                    <a href="/opencms/opencms/vetrina_bandi.html" style="color: white;">Vetrina Bandi</a>
+                                </li>
+                                <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                    <a href="/opencms/opencms/categoriaProdotti.html" style="color: white;">Vai al Catalogo</a>
+                                </li>
+
+                            </ul>
+                        </div>
+                        <div data-uib-accordion-group class="borderAll" style="background: none" data-is-open="status.isSecondOpen">
+                            <uib-accordion-heading>
+                                <div class="fontWhite">Supporto
+                                    <em data-class="pull-right fontWhite glyphicon" data-ng-class="{'glyphicon glyphicon-chevron-down': status.isSecondOpen, 'glyphicon glyphicon-chevron-right': !status.isSecondOpen}"></em>
+                                </div>
+                            </uib-accordion-heading>
+                            <ul class="list-unstyled iconList borderList">
+                                <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                    <span class="cursor" data-ng-click="pagineSupporto()" style="color: white;">Come Iniziare</span>
+                                </li>
+                                <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                    <a href="/opencms/opencms/supporto_guide.html" style="color: white;">Guide Operative</a>
+                                </li>
+                                <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                    <a href="/opencms/opencms/filmati.html" style="color: white;">Filmati Dimostrativi</a>
+                                </li>
+                                <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                    <a href="/opencms/opencms/supporto_Eventi-Formazione.html" style="color: white;">Eventi e Formazione</a>
+                                </li>
+                                <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                    <a href="/opencms/opencms/faq.html" style="color: white;">Domande Frequenti</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div data-uib-accordion-group class="borderAll" style="background: none" data-is-open="status.isThirdOpen">
+                            <uib-accordion-heading>
+                                <div class="fontWhite">Portale
+                                    <em data-class="pull-right fontWhite glyphicon" data-ng-class="{'glyphicon glyphicon-chevron-down': status.isThirdOpen, 'glyphicon glyphicon-chevron-right': !status.isThirdOpen}"></em>
+                                </div>
+                            </uib-accordion-heading>
+                            <ul class="list-unstyled iconList borderList">
+                                <!-- <li  class="licustom"><a href="<cms:link>%(link.weak:/newsletter.html:8d101b52-a4ce-11e6-8744-2df343192d3f)</cms:link>" style="color: white;">Newsletter</a></li> -->
+                                <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                    <a href="/opencms/opencms/manutenzione.html" style="color: white;">Manutenzione</a>
+                                </li>
+                                <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                    <a href="/opencms/opencms/accessibilita.html" style="color: white;">Accessibilità</a>
+                                </li>
+                                <!--	<li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding"><a href="#" style="color: white;">Mappa del Portale</a></li>  -->
+                                <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                    <a href="/opencms/opencms/note_legali/responsabilita.html" style="color: white;">Note Legali</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </uib-accordion>
+                </div>
+
+                <div class="col-md-3 col-sm-6 hidden-xs">
+                    <div class="footerWidget">
+                        <div class="footer-title" style="margin-bottom:25px">Link Veloci</div>
+                        <ul class="list-unstyled iconList borderList">
+                            <li class="licustom licustom-xs">
+                                <a class="footerLink" href="/opencms/opencms/vetrina_iniziative.html" style="color: white;">Vetrina Iniziative</a>
+                            </li>
+                            <li class="licustom licustom-xs">
+                                <a class="footerLink" href="/opencms/opencms/vetrina_bandi.html" style="color: white;">Vetrina Bandi</a>
+                            </li>
+                            <li class="licustom licustom-xs">
+                                <a class="footerLink" href="/opencms/opencms/categoriaProdotti.html" style="color: white;">Catalogo</a>
+                            </li>
+
+                        </ul>
+                        <!--<div class="footerWidget">-->
+                        <div class="footer-title" style="margin-bottom:25px">Portale</div>
+                        <ul class="list-unstyled iconList borderList">
+                            <!-- <li  class="licustom"><a href="<cms:link>%(link.weak:/newsletter.html:8d101b52-a4ce-11e6-8744-2df343192d3f)</cms:link>" style="color: white;">Newsletter</a></li> -->
+                            <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                <a class="footerLink" href="/opencms/opencms/manutenzione.html" style="color: white;">Manutenzione</a>
+                            </li>
+                            <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                <a class="footerLink" href="/opencms/opencms/accessibilita.html" style="color: white;">Accessibilità</a>
+                            </li>
+                            <!--	<li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding"><a href="#" style="color: white;">Mappa del Portale</a></li>  -->
+                            <li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding">
+                                <a class="footerLink" href="/opencms/opencms/note_legali/responsabilita.html" style="color: white;">Note Legali</a>
+                            </li>
+                        </ul>
+                        <!--</div>-->
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 hidden-xs">
+                    <div class="footerWidget">
+                        <div class="footer-title" style="margin-bottom:25px">Supporto</div>
+                        <ul class="list-unstyled iconList borderList">
+                            <li class="licustom licustom-xs">
+                                <a href="#" data-ng-click="pagineSupporto()" style="color: white;">Come Iniziare</a>
+                            </li>
+                            <li class="licustom licustom-xs">
+                                <a class="footerLink" href="/opencms/opencms/supporto_guide.html"
+                                    style="color: white;">Guide Operative</a>
+                            </li>
+                            <li class="licustom licustom-xs">
+                                <a class="footerLink" href="/opencms/opencms/filmati.html" style="color: white;">Filmati Dimostrativi</a>
+                            </li>
+                            <li class="licustom licustom-xs">
+                                <a class="footerLink" href="/opencms/opencms/supporto_Eventi-Formazione.html"
+                                    style="color: white;">Eventi e Formazione</a>
+                            </li>
+                            <li class="licustom licustom-xs">
+                                <a class="footerLink" href="/opencms/opencms/faq.html" style="color: white;">Domande Frequenti</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 hidden-xs">
+                    <div class="footerWidget">
+                        <div class="footer-title" style="margin-bottom:25px">Seguici su</div>
+
+                        <div class="col-sm-12 nopadding">
+                            <a href="https://www.youtube.com/channel/UC426hjPolvTwyVPiTHyyhFg" target="_blank">
+                                <!-- <img alt="youtube" style="width:30px; height:30px; border-radius: 8px;" src="/opencms/opencms/system/modules/my.template/resources/img/untitled-24.svg"> -->
+                                <span style="color:white;">&nbsp;&nbsp; YouTube </span>
+                            </a>
+                        </div>
+                        <div class="col-sm-12 nopadding voffset3">
+                            <a href="https://twitter.com/Consip_Spa?ref_src=twsrc%5Etfw" target="_blank">
+                                <!-- <img alt="twitter" style="width:30px; height:30px;" src="/opencms/opencms/system/modules/my.template/resources/img/twitter_xdef1x.svg"> -->
+                                <span style="color:white;">&nbsp;&nbsp; Twitter </span>
+                            </a>
+                        </div>
+                        <div class="col-sm-12 nopadding voffset3">
+                            <a href="https://t.me/ConsipSpa" target="_blank">
+                                <!-- <img alt="telegram" style="width:30px; height:30px;" src="/opencms/opencms/system/modules/my.template/resources/img/telegram.svg"> -->
+                                <span style="color:white;">&nbsp;&nbsp; Telegram </span>
+                            </a>
+                        </div>
+                        <!--<div class="col-sm-12 nopadding voffset3"><a href="https://t.me/ConsipSpa" target="_blank"><img src="http://10.52.6.9:8080/opencms/opencms/system/modules/my.template/resources/img/in-box-variations.png"><span style="color:white;">&nbsp;&nbsp;  Linkedin </span></a></div>-->
+
+                        <!--<ul class="list-unstyled iconList borderList">-->
+                        <!-- <li  class="licustom"><a href="<cms:link>%(link.weak:/newsletter.html:8d101b52-a4ce-11e6-8744-2df343192d3f)</cms:link>" style="color: white;">Newsletter</a></li> -->
+                        <!--<li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding"><a class="footerLink" href="<cms:link>%(link.weak:/manutenzione.html:9ff177ae-c1f1-11e6-9a49-adcb1677e681)</cms:link>" style="color: white;">Manutenzione</a></li>-->
+                        <!--<li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding"><a class="footerLink" href="<cms:link>%(link.weak:/accessibilita.html:60e80a7e-c20a-11e6-9a49-adcb1677e681)</cms:link>" style="color: white;">Accessibilità</a></li>-->
+                        <!--	<li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding"><a href="#" style="color: white;">Mappa del Portale</a></li>  -->
+                        <!--<li class="col-xs-6 col-sm-12 licustom licustom-xs nopadding"><a class="footerLink" href="<cms:link>%(link.weak:/note_legali/responsabilita.html)</cms:link>" style="color: white;">Note Legali</a></li>-->
+                        <!--</ul>-->
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 hidden-xs">
+                    <div class="footerWidget">
+                        <div class="footer-title">Contatti</div>
+                        <div class="footer-text italic-ized">dal lunedi al venerdi
+                            <br>dalle 9.00 alle 18.00</div>
+                        <div class="footer-text left-phone-icon">PA
+                            <span class="footer-small">(numero verde unico)</span>
+                        </div>
+                        <div class="footer-text bold-ized">{{numeroVerdePA}}</div>
+                        <div class="footer-text left-phone-icon">IMPRESE
+                            <br>
+                            <span class="footer-small">(per malfunzionamenti sul Portale Acquisti in Rete)</span>
+                        </div>
+                        <div class="footer-text bold-ized">{{numeroVerdeIM}}</div>
+                        <div class="footer-text">
+                            <a class="footerLink" href="/opencms/opencms/supporto_contatti.html" style="color: white;">Vedi tutti i contatti</a>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </section>
+</footer>

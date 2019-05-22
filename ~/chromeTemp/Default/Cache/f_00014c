@@ -1,0 +1,537 @@
+angular.module('eprocApp').factory('bandoService', ['urlService', 'EprocAAW', '$q', function(urlService, EprocAAW, $q) {
+
+  const call = function(url, data, loading = true) {
+    let deferred = $q.defer()
+    let jsonRequest = {
+      "uri": url,
+      "method": "POST",
+      "input": data,
+      "callback": function(input) {
+        EprocAAW.valutazioneResult(input, deferred);
+      }
+    }
+    EprocAAW.callService(jsonRequest, loading);
+    return deferred.promise
+  }
+
+  // getBean
+
+  const getBandoBean = function(data = null) {
+    return {
+      "idBando": data && data.idBando ? data.idBando : null,
+      "nmNomeBando": data && data.nmNomeBando ? data.nmNomeBando : null,
+      "idProgetto": data && data.idProgetto ? data.idProgetto : null,
+      "cdStato": data && data.cdStato ? data.cdStato : "BOZZA",
+      "dsDescrizioneBando": data && data.dsDescrizioneBando ? data.dsDescrizioneBando : null,
+      "tsDataScadenza": data && data.tsDataScadenza ? mergeDateTime(data.tsDataScadenza, data.oraScadenza) : null,
+      "tsDataAttivazione": data && data.tsDataAttivazione ? mergeDateTime(data.tsDataAttivazione, data.oraAttivazione) : null,
+      "tsDataPubblicazione": data && data.tsDataPubblicazione ? mergeDateTime(data.tsDataPubblicazione, data.oraPubblicazione) : null,
+      "nmEnteCommittente": data && data.nmEnteCommittente ? data.nmEnteCommittente : null,
+      "nrBando": data && data.nrBando ? data.nrBando : null,
+      "cdStatoVetrina": data && data.cdStatoVetrina ? data.cdStatoVetrina : null,
+      "fgVisibilitaVetrina": data && data.fgVisibilitaVetrina ? data.fgVisibilitaVetrina : null,
+      "nmUtenteInserimento": data && data.nmUtenteInserimento ? data.nmUtenteInserimento : null,
+      "tsInserimento": data && data.tsInserimento ? data.tsInserimento : null,
+      "nmUtenteUltimaModifica": data && data.nmUtenteUltimaModifica ? data.nmUtenteUltimaModifica : null,
+      "tsUltimaModifica": data && data.tsUltimaModifica ? data.tsUltimaModifica : null
+    }
+  }
+
+  const getCategoriaBean = function(data = null) { // Se modificato, modificare anche assembleDataCategoria
+    return {
+      "idCategoria": data && data.idCategoria ? data.idCategoria : null,
+      "idBando": data && data.idBando ? data.idBando : null,
+      "nmCategoria": data && data.nmCategoria ? data.nmCategoria : null,
+      "dsCategoria": data && data.dsCategoria ? data.dsCategoria : null,
+      "pgLivelloCategoria": data && data.pgLivelloCategoria != undefined ? data.pgLivelloCategoria : null,
+      "fgCategoriaAbilitazione": data && data.fgCategoriaAbilitazione ? data.fgCategoriaAbilitazione : null,
+      "cdTipoStrumento": data && data.cdTipoStrumento ? data.cdTipoStrumento : null,
+      "cdStato": data && data.cdStato ? data.cdStato : null,
+      "tsDataAttivazione": data && data.tsDataAttivazione ? data.tsDataAttivazione : null,
+      "idCategoriaPadre": data && data.idCategoriaPadre ? data.idCategoriaPadre : null,
+      "cdStatoVetrina": data && data.cdStatoVetrina ? data.cdStatoVetrina : null,
+      "fgNuoveDomAbil": data && data.fgNuoveDomAbil ? data.fgNuoveDomAbil : null,
+      "fgGestCatalogo": data && data.fgGestCatalogo ? data.fgGestCatalogo : null,
+      "fgCompletaRdo": data && data.fgCompletaRdo ? data.fgCompletaRdo : null,
+      "fgCompletaDomAbil": data && data.fgCompletaDomAbil ? data.fgCompletaDomAbil : null,
+      "fgResetDomAbil": data && data.fgResetDomAbil ? data.fgResetDomAbil : null,
+      "fgAvviaNuoveTransa": data && data.fgAvviaNuoveTransa ? data.fgAvviaNuoveTransa : null,
+      "fgCompletaTransa": data && data.fgCompletaTransa ? data.fgCompletaTransa : null,
+      "fgRiassegna": data && data.fgRiassegna ? data.fgRiassegna : null,
+      "nmUtenteInserimento": data && data.nmUtenteInserimento ? data.nmUtenteInserimento : null,
+      "tsInserimento": data && data.tsInserimento ? data.tsInserimento : null,
+      "nmUtenteUltimaModifica": data && data.nmUtenteUltimaModifica ? data.nmUtenteUltimaModifica : null,
+      "tsUltimaModifica": data && data.tsUltimaModifica ? data.tsUltimaModifica : null
+    }
+  }
+
+  const getInputIdBean = function(id) {
+    return {
+      "id": id
+    }
+  }
+  // Stato
+
+  const getListCategorieAbilitazione = function(idBando, cdStato = null, loading) {
+    const dataToSend = {
+      'idBando': idBando,
+      'cdStato': cdStato
+    }
+    return call(urlService.get() + "/bando/categoria/getListCategorieAbilitazione", dataToSend)
+  }
+
+  const cambiaStatoBando = function(servizio, data, loading) {
+    return call(urlService.get() + "/bando/categoria/" + servizio, data)
+  }
+
+
+  // Utility
+
+  const assembleDataCategoria = function(categoria, idBando, idCatPadre, livello, cdStato) {
+    const data = getCategoriaBean(categoria)
+    data.idBando = idBando;
+    data.idCategoriaPadre = idCatPadre;
+    data.cdStato = cdStato;
+    data.pgLivelloCategoria = livello;
+    return data;
+  }
+
+  const assembleInputCategoria = function(categoria, idBando, idCatPadre, flagAbiLiv = false) {
+
+    if (flagAbiLiv) {
+
+      return {
+        "nmCategoria": categoria.nmCategoria,
+        "dsCategoria": categoria.dsCategoria,
+        "idBando": idBando,
+        "idCategoriaPadre": idCatPadre,
+        "cdTipoStrumento": categoria.cdTipoStrumento,
+        "bandoAmministrativo": categoria.bandoAmministrativo,
+        "fgCatalogo": categoria.fgCatalogo,
+        "fgVisualizzazioneVetrina": categoria.fgVisualizzazioneVetrina
+      }
+
+    } else {
+
+      return {
+        "nmCategoria": categoria.nmCategoria,
+        "dsCategoria": categoria.dsCategoria,
+        "idBando": idBando,
+        "idCategoriaPadre": idCatPadre
+      }
+
+    }
+  }
+
+  const mergeDateTime = function(data, ora = null) {
+    if (ora) return new Date(new Date(data).getFullYear(), new Date(data).getMonth(), new Date(data).getDate(), new Date(ora).getHours(), new Date(ora).getMinutes(), 0, 0)
+    else return new Date(new Date(data).getFullYear(), new Date(data).getMonth(), new Date(data).getDate(), 0, 0, 0, 0)
+  }
+
+  // Bando
+
+  const getListBandiProgetto = function(idProgetto, nomeBando = null, loading) {
+    const dataToSend = {
+      'idProgetto': idProgetto,
+      'nomeBando': nomeBando
+    }
+    return call(urlService.get() + "/bando/bando/getListBandiProgetto", dataToSend, loading)
+  }
+
+  const deleteBando = function(idBando, loading) {
+    return call(urlService.get() + "/bando/bando/deleteBando", getInputIdBean(idBando), loading)
+  }
+
+  const copyBando = function(data, loading) {
+    return call(urlService.get() + "/bando/bando/copyBando", data, loading)
+  }
+
+  const insertBando = function(data, loading) {
+    return call(urlService.get() + "/bando/bando/insertBando", data, loading);
+  }
+
+  const updateBando = function(data, loading) {
+    return call(urlService.get() + "/bando/bando/updateBando", data, loading)
+  }
+
+  // Bando amministrativo
+
+  const insertBandoAmministrativo = function(data, loading) {
+    return call(urlService.get() + "/bando/bandoAmministrativo/insertBandoAmministrativo", data, loading)
+  }
+
+  const deleteBandoAmministrativo = function(data, loading) {
+    return call(urlService.get() + "/bando/bandoAmministrativo/deleteBandoAmministrativo", data, loading)
+  }
+
+  const updateBandoAmministrativo = function(data, loading) {
+    return call(urlService.get() + "/bando/bandoAmministrativo/updateBandoAmministrativo", data, loading)
+  }
+
+  const getBandoAmministrativo = function(data, loading) {
+    return call(urlService.get() + "/bando/bandoAmministrativo/getBandoAmministrativo", data, loading)
+  }
+
+  const getListBandoAmministrativo = function(data, loading) {
+    return call(urlService.get() + "/bando/bandoAmministrativo/getListBandoAmministrativo", data, loading)
+  }
+
+  const getListBandoAmministrativoByTipoBando = function(data, loading) {
+    return call(urlService.get() + "/bando/bandoAmministrativo/getListBandoAmministrativoByTipoBando", data, loading)
+  }
+
+  // Categoria
+
+  const deleteCategoria = function(idCategoria, loading) {
+    return call(urlService.get() + "/bando/categoria/deleteCategoria", getInputIdBean(idCategoria), loading)
+  }
+
+  const insertCategoriaLivello = function(categoriaIns, idBando, idCatPadre, loading) {
+    return call(urlService.get() + "/bando/categoria/insertCategoriaLivello", assembleInputCategoria(categoriaIns, idBando, idCatPadre, false), loading)
+  }
+
+  const insertCategoriaAbilitazione = function(categoriaIns, idBando, idCatPadre, loading) {
+    return call(urlService.get() + "/bando/categoria/insertCategoriaAbilitazione", assembleInputCategoria(categoriaIns, idBando, idCatPadre, true), loading)
+  }
+
+  const updateCategoriaAbilitazione = function(data, loading) {
+    return call(urlService.get() + "/bando/categoria/updateCategoriaAbilitazione", data, loading)
+
+  }
+
+  const updateCategoriaLivello = function(data, loading) {
+    return call(urlService.get() + "/bando/categoria/updateCategoriaLivello", data, loading)
+  }
+
+  const transformInCategoriaLivello = function(nodo, loading) {
+    return call(urlService.get() + "/bando/categoria/getCategoria", getInputIdBean(nodo.idCategoria)).then(function(response) {
+      if (response.payload.fgCategoriaAbilitazione == 'N') response.payload.fgCategoriaAbilitazione = 'S';
+      else response.payload.fgCategoriaAbilitazione = 'N';
+      return call(urlService.get() + "/bando/categoria/trasformaInCategoriaLivello", {
+        "id": response.payload.idCategoria
+      }, loading)
+    })
+  }
+
+  const transformInCategoriaAbilitazione = function(nodo, loading) {
+    return call(urlService.get() + "/bando/categoria/getCategoria", getInputIdBean(nodo.idCategoria)).then(function(response) {
+      if (response.payload.fgCategoriaAbilitazione == 'N') response.payload.fgCategoriaAbilitazione = 'S';
+      else response.payload.fgCategoriaAbilitazione = 'N';
+      return call(urlService.get() + "/bando/categoria/trasformaInCategoriaAbilitazione", {
+        "idCategoria": response.payload.idCategoria,
+        "cdTipoStrumento": nodo.cdTipoStrumento
+      }, loading)
+    })
+  }
+
+  const getAlberoCategoria = function(idBando, idCategoria = null, loading) {
+    return call(urlService.get() + "/bando/categoria/getAlberoCategoria", {
+      "idBando": idCategoria ? null : idBando, // Se mandi entrambe le id restituisce errore, deve esserci una id valorizzata e l'altra null
+      "idCategoria": idCategoria
+    }, loading)
+  }
+
+  const countRequisitiCategoria = function(idCategoria, loading = true) {
+
+    return call(urlService.get() + "/bando/categoriaModuloDati/countRequisitiCategoria", {
+      id: idCategoria
+    }, loading)
+  }
+
+  // documenti Template
+
+  const getListTemplate = function(data, loading) {
+
+    return call(urlService.get() + "/bando/template/getListTemplate", data, loading)
+  }
+
+  const getListTemplateByTipologia = function(data, loading) {
+    return call(urlService.get() + "/bando/template/getListTemplateByTipologia", data, loading)
+
+  }
+
+  const insertCascadeTemplate = function(data, loading) {
+    return call(urlService.get() + "/bando/template/insertCascadeTemplate", {
+      'templateDoc': data.templateDoc,
+      'array': data.array
+    }, loading)
+  }
+
+  const deleteCascadeTemplate = function(id, loading) {
+    return call(urlService.get() + "/bando/template/deleteCascadeTemplate", {
+      'id': id
+    }, loading)
+  }
+
+  const updateTemplate = function(data) {
+    return call(urlService.get() + "/bando/template/updateTemplate", {
+      'nmTemplate': data.nmTemplate,
+      'nmNomeFile': data.nmNomeFile,
+      'cdTipoTemplate': data.cdTipoTemplate,
+      'fgFirmaObbligatoria': data.fgFirmaObbligatoria,
+      'nmUtenteInserimento': data.nmUtenteInserimento,
+      'templateFooter': data.templateFooter,
+      'templateHeader': data.templateHeader,
+      'tsInserimento': data.tsInserimento,
+      'nmUtenteUltimaModifica': data.nmUtenteUltimaModifica,
+      'tsUltimaModifica': data.tsUltimaModifica,
+      'idTemplateDoc': data.idTemplateDoc
+    })
+  }
+
+  const getListModuloDatiByIdCategoria = function(data, loading) {
+    return call(urlService.get() + "/bando/categoriaModuloDati/getListModuloDatiByIdCategoria", data, loading)
+  }
+
+  const importModuloDati = function(data, loading) {
+    return call(urlService.get() + "/bando/categoriaModuloDati/importModuloDati", data, loading)
+  }
+
+  const insertModuloDatiCategoria = function(data, loading) {
+    return call(urlService.get() + "/bando/categoriaModuloDati/insertCategoriaModuloDati", data, loading)
+  }
+
+  const deleteModuloDatiCategoria = function(data, loading) {
+    return call(urlService.get() + "/bando/categoriaModuloDati/deleteCategoriaModuloDati", data, loading)
+  }
+
+  const getListDocumentiGeneraliBando = function(data, loading) {
+    return call(urlService.get() + "/bando/documentoGenerale/getListDocumentiGeneraliBando", data, loading)
+  }
+
+  const getListRequisitoReferenziabileCategoria = function(data, loading) {
+    return call(urlService.get() + "/bando/categoriaModuloDati/getListRequisitoReferenziabileCategoria", data, loading)
+  }
+
+  const getListRequisitiRamoCategoria = function(data, loading) {
+    return call(urlService.get() + "/bando/categoriaModuloDati/getListRequisitiRamoCategoria", data, loading)
+  }
+
+  const getListaAttributi = function(data, loading) {
+    return call(urlService.get() + "/vocabolariounicoservices/getListaAttributi", data, loading)
+  }
+
+  const getListaLibrerie = function(data, loading) {
+    return call(urlService.get() + "/vocabolariounicoservices/getListaLibrerie", data, loading)
+  }
+
+  const getListaValori = function(data, loading) {
+    return call(urlService.get() + "/vocabolariounicoservices/getListeValori", data, loading)
+  }
+
+  const insertCategoriaAttributo = function(data, loading) {
+    return call(urlService.get() + "/bando/attributoCategoria/insertCategoriaAttributo", data, loading)
+  }
+
+  const deleteCategoriaAttributo = function(data, loading) {
+    return call(urlService.get() + "/bando/attributoCategoria/deleteCategoriaAttributo", data, loading)
+  }
+
+  const updateCategoriaAttributo = function(data, loading) {
+    return call(urlService.get() + "/bando/attributoCategoria/updateCategoriaAttributo", data, loading)
+  }
+
+  const getListAttributiCategoria = function(data, loading) {
+    return call(urlService.get() + "/bando/attributoCategoria/getListAttributiCategoria", data, loading)
+  }
+
+  const getListCategoriaCPVByIdCategoria = function(data, loading) {
+    return call(urlService.get() + "/bando/categoriaCPV/getListCategoriaCPVByIdCategoria", data, loading)
+  }
+
+  const deleteCategoriaCPV = function(data, loading) {
+    return call(urlService.get() + "/bando/categoriaCPV/deleteCategoriaCPV", data, loading)
+  }
+
+  const insertListCategoriaCPV = function(data, loading) {
+    return call(urlService.get() + "/bando/categoriaCPV/insertListCategoriaCPV", data, loading)
+  }
+
+  const getListaCodiciCpv = function(data, loading) {
+    var deferred = $q.defer()
+    this.cercaCpvCallback = function(result) {
+      EprocAAW.valutazioneResult(result, deferred)
+    }
+    var cercaCpvRequest = {
+      "uri": "/eproc2/dizionariservices/getListaCodiciCpv/" + data,
+      "method": "GET",
+      "input": {},
+      "callback": this.cercaCpvCallback
+    }
+    EprocAAW.callService(cercaCpvRequest, true)
+    return deferred.promise
+  }
+
+  const insertListCategoriaAteco = function(data, loading) {
+    return call(urlService.get() + "/bando/categoriaAteco/insertListCategoriaAteco", data, loading)
+  }
+
+  const deleteCategoriaAteco = function(data, loading) {
+    return call(urlService.get() + "/bando/categoriaAteco/deleteCategoriaAteco", data, loading)
+  }
+
+  const getListCategoriaAtecoByIdCategoria = function(data, loading) {
+    return call(urlService.get() + "/bando/categoriaAteco/getListCategoriaAtecoByIdCategoria", data, loading)
+  }
+
+  const ricercaCodiceValore = function(data, loading) {
+    return call(urlService.get() + "/dizionariservices/ricercaCodiceValore", data, loading)
+  }
+
+  const getTemplate = function(data, loading) {
+    return call(urlService.get() + "/bando/template/getTemplate", data, loading)
+  }
+
+  const getDocumentoGenerale = function(data, loading) {
+    return call(urlService.get() + "/bando/documentoGenerale/getDocumentoGenerale", data, loading)
+  }
+
+  const insertCategoriaRegoleAccesso = function(data, loading) {
+    return call(urlService.get() + "/bando/regolaAccessoCategoria/insertCategoriaRegoleAccesso", data, loading)
+  }
+
+  const updateCategoriaRegoleAccesso = function(data, loading) {
+    return call(urlService.get() + "/bando/regolaAccessoCategoria/updateCategoriaRegoleAccesso", data, loading)
+  }
+
+  const deleteCategoriaRegoleAccesso = function(data, loading) {
+    return call(urlService.get() + "/bando/regolaAccessoCategoria/deleteCategoriaRegoleAccesso", data, loading)
+  }
+
+  const getListCategoriaRegoleAccesso = function(data, loading) {
+    return call(urlService.get() + "/bando/regolaAccessoCategoria/getListCategoriaRegoleAccesso", data, loading)
+  }
+
+  validateFormula = function(data, loading) {
+    return call(urlService.get() + "/formulaservices/validateFormula", data, loading)
+  }
+
+  const maintenance = function(data, loading) {
+    return call(urlService.get() + "/bando/bando/maintenance", data, loading)
+  }
+
+  const republish = function(data, loading) {
+    return call(urlService.get() + "/bando/bando/republish", data, loading)
+  }
+
+  const getListCategorieBando = function(data, loading) {
+    return call(urlService.get() + "/bando/categoria/getListCategorieBando", data, loading)
+  }
+
+  //---------Percorso-Netto-Pratiche-Commericiali-----------------------------//
+
+  const getPercNettoCommRefByIdCategoria = function(data, loading) {
+    return call(urlService.get() + "/bando/percNettoComm/getPercNettoCommRefByIdCategoria", data, loading)
+  }
+
+  const insertPercNettoComm = function(data, loading) {
+    return call(urlService.get() + "/bando/percNettoComm/insertPercNettoComm", data, loading)
+  }
+
+  const insertFormulaRequisitoPercNettoComm = function(data, loading) {
+    return call(urlService.get() + "/bando/percNettoCommDett/insertFormulaRequisitoPercNettoComm", data, loading)
+  }
+
+  const updatePercNettoComm = function(data, loading) {
+    return call(urlService.get() + "/bando/percNettoComm/updatePercNettoComm", data, loading)
+  }
+
+  const updateFgSelezionatoRequisitoPercNettoComm = function(data, loading) {
+    return call(urlService.get() + "/bando/percNettoCommDett/updateFgSelezionatoRequisitoPercNettoComm", data, loading)
+  }
+  //storico
+  const getListPercNettoCommStoLastVersion = function(data, loading) {
+    return call(urlService.get() + "/bando/percNettoCommSto/getListPercNettoCommStoLastVersion", data, loading)
+  }
+
+  const getListPercNettoCommStoByIdCategoria = function(data, loading) {
+    return call(urlService.get() + "/bando/percNettoCommSto/getListPercNettoCommStoByIdCategoria", data, loading)
+
+  }
+
+  const getListPercNettoCommDettStoById = function(data, loading) {
+    return call(urlService.get() + "/bando/percNettoCommDettSto/getListPercNettoCommDettStoById", data, loading)
+  }
+
+  const deletePercNettoCommDett = function(data, loading) {
+    return call(urlService.get() + "/bando/percNettoCommDett/deletePercNettoCommDett", data, loading)
+  }
+
+
+
+
+  return {
+    getBandoBean: getBandoBean,
+    getCategoriaBean: getCategoriaBean,
+    getListBandiProgetto: getListBandiProgetto,
+    getInputIdBean: getInputIdBean,
+    deleteBando: deleteBando,
+    deleteCategoria: deleteCategoria,
+    copyBando: copyBando,
+    insertBando: insertBando,
+    updateBando: updateBando,
+    insertCategoriaAbilitazione: insertCategoriaAbilitazione,
+    insertCategoriaLivello: insertCategoriaLivello,
+    updateCategoriaAbilitazione: updateCategoriaAbilitazione,
+    updateCategoriaLivello: updateCategoriaLivello,
+    getAlberoCategoria: getAlberoCategoria,
+    countRequisitiCategoria: countRequisitiCategoria,
+    transformInCategoriaLivello: transformInCategoriaLivello,
+    transformInCategoriaAbilitazione: transformInCategoriaAbilitazione,
+    getListTemplateByTipologia: getListTemplateByTipologia,
+    getListTemplate: getListTemplate,
+    insertCascadeTemplate: insertCascadeTemplate,
+    deleteCascadeTemplate: deleteCascadeTemplate,
+    updateTemplate: updateTemplate,
+    getListModuloDatiByIdCategoria: getListModuloDatiByIdCategoria,
+    importModuloDati: importModuloDati,
+    insertModuloDatiCategoria: insertModuloDatiCategoria,
+    deleteModuloDatiCategoria: deleteModuloDatiCategoria,
+    getListDocumentiGeneraliBando: getListDocumentiGeneraliBando,
+    getListRequisitoReferenziabileCategoria: getListRequisitoReferenziabileCategoria,
+    getListaAttributi: getListaAttributi,
+    getListaLibrerie: getListaLibrerie,
+    getListaValori: getListaValori,
+    getListAttributiCategoria: getListAttributiCategoria,
+    insertCategoriaAttributo: insertCategoriaAttributo,
+    deleteCategoriaAttributo: deleteCategoriaAttributo,
+    updateCategoriaAttributo: updateCategoriaAttributo,
+    getListCategoriaCPVByIdCategoria: getListCategoriaCPVByIdCategoria,
+    deleteCategoriaCPV: deleteCategoriaCPV,
+    insertListCategoriaCPV: insertListCategoriaCPV,
+    getListaCodiciCpv: getListaCodiciCpv,
+    getListCategoriaAtecoByIdCategoria: getListCategoriaAtecoByIdCategoria,
+    insertListCategoriaAteco: insertListCategoriaAteco,
+    deleteCategoriaAteco: deleteCategoriaAteco,
+    ricercaCodiceValore: ricercaCodiceValore,
+    getTemplate: getTemplate,
+    getDocumentoGenerale: getDocumentoGenerale,
+    insertBandoAmministrativo: insertBandoAmministrativo,
+    deleteBandoAmministrativo: deleteBandoAmministrativo,
+    updateBandoAmministrativo: updateBandoAmministrativo,
+    getBandoAmministrativo: getBandoAmministrativo,
+    getListBandoAmministrativo: getListBandoAmministrativo,
+    getListBandoAmministrativoByTipoBando: getListBandoAmministrativoByTipoBando,
+    mergeDateTime: mergeDateTime,
+    getListRequisitiRamoCategoria: getListRequisitiRamoCategoria,
+    insertCategoriaRegoleAccesso: insertCategoriaRegoleAccesso,
+    updateCategoriaRegoleAccesso: updateCategoriaRegoleAccesso,
+    deleteCategoriaRegoleAccesso: deleteCategoriaRegoleAccesso,
+    getListCategoriaRegoleAccesso: getListCategoriaRegoleAccesso,
+    validateFormula: validateFormula,
+    maintenance: maintenance,
+    republish: republish,
+    getListCategorieAbilitazione: getListCategorieAbilitazione,
+    cambiaStatoBando: cambiaStatoBando,
+    getListCategorieBando: getListCategorieBando,
+    getPercNettoCommRefByIdCategoria: getPercNettoCommRefByIdCategoria,
+    insertPercNettoComm: insertPercNettoComm,
+    getListPercNettoCommStoLastVersion: getListPercNettoCommStoLastVersion,
+    getListPercNettoCommStoByIdCategoria: getListPercNettoCommStoByIdCategoria,
+    getListPercNettoCommDettStoById: getListPercNettoCommDettStoById,
+    insertFormulaRequisitoPercNettoComm: insertFormulaRequisitoPercNettoComm,
+    updatePercNettoComm: updatePercNettoComm,
+    updateFgSelezionatoRequisitoPercNettoComm: updateFgSelezionatoRequisitoPercNettoComm,
+    deletePercNettoCommDett:deletePercNettoCommDett
+  }
+}])

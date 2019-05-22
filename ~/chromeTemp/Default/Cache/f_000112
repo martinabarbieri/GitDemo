@@ -1,0 +1,454 @@
+<span data-ng-if="!utenteAutorizzato">
+	<ng-include src='"./common/erroreAutorizzazione.html"'></ng-include>
+</span>
+
+<div data-ng-if="utenteAutorizzato" data-ng-controller="menuSsaCtrl" class="col-sm-9 col-md-9 col-lg-10 col-xs-12 colDx col-mnm-height col-top"
+ style="left: 15px; margin-bottom: 50px">
+
+	<h1 class="row">Catalogo</h1>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState(
+													'categoriaAttributo.Ricerca',
+													{
+														beanRicerca: {nome : '',
+															descrizione : '',
+															utente : '',
+															dataDa : '',
+															dataA : '',
+															username: ''},
+														pagination: {
+															currentPage : 1,
+															itemsPerPage : 10,
+															totalItems : 0,
+															orderColumnId : 0,
+															verso : 'ASC'
+														}
+													},	'RICERCA_CATEGORIA_ATTRIBUTI')">
+				Gestione categorie attributi</button>
+		</a>
+	</div>
+
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState(
+													'attributo.Ricerca',
+													{
+														beanRicerca: {
+															idAttributoVis : '',
+															nome : '',
+															descrizione : '',
+															utente : '',
+															formato : '',
+															tipo : '',
+															dataDa : '',
+															dataA : '',
+															username : '',
+															categoriaAttributi : ''},
+														pagination: {
+															currentPage : 1,
+															itemsPerPage : 10,
+															totalItems : 0,
+															orderColumnId : 0,
+															verso : 'ASC'
+														}
+													},	'RICERCA_ATTRIBUTI')">
+				Gestione vocabolario unico attributi</button>
+		</a>
+	</div>
+
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState(
+													'categoriaLibreria.Ricerca',
+													{
+														beanRicerca: {nome : '',
+															descrizione : '',
+															utente : '',
+															dataDa : '',
+															dataA : '',
+															username: ''},
+														pagination: {
+															currentPage : 1,
+															itemsPerPage : 10,
+															totalItems : 0,
+															orderColumnId : 0,
+															verso : 'ASC'
+														}
+													},	'RICERCA_CATEGORIA_LIBRERIA')">
+				Gestione categorie librerie valori</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('libreriaValori.Ricerca', {beanRicerca : {
+											idLibreria : '' ,
+											nome : '',
+											descrizione : '',
+											dimensione : '',
+											tipo : '',
+											utente : '',
+											idCategoria : '',
+											dataDa : '',
+											dataA : '',
+											username : '',
+					}},'RICERCA_LIBRERIA_VALORI')">
+				Gestione librerie di valori</button>
+		</a>
+
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState(
+
+                                    'modelliSkt.ricerca',
+                                    {
+                                        modelliSchedaTecnica:{}
+                                    })">
+				Gestione Modelli schede tecniche</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('prototipoIniziativa.Ricerca', {beanRicerca :
+                                    {
+                                       idPrototipo: '',
+								nome: '',
+								descrizione: '',
+								stato: '',
+								utente: '',
+								dataDa: '',
+								dataA: '',
+								username: ''
+                                    }}, 'RICERCA_PROTOTIPO_INIZIATIVA')">
+				Gestione Prototipo Iniziativa</button>
+		</a>
+	</div>
+
+	<!-- <div class="row">
+
+			<a>
+		<button type="button" data-ng-click="goToState('schedaTecnica.Inserimento', {})" class="button button-block button-positive">Scheda Tecnica (Prototipi)</button>
+		</a>
+
+
+</div> -->
+
+
+	<h1 class="row">Progetto</h1>
+
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('progetto.Ricerca', {beanRicerca : {nomeProgetto : '',
+																			numeroProgetto : '',
+																			cognomeCreatore : '',
+																			usernameCreatore : '',
+																			statoProgetto : ''},
+																		pagination: {
+																			currentPage : 1,
+																			itemsPerPage : 10,
+																			totalItems : 0,
+																			orderColumnId : 0,
+																			verso : 'DESC'
+														}},'RICERCA_PROGETTO')">
+				Gestione progetto</button>
+		</a>
+	</div>
+
+	<h1 class="row">Gara</h1>
+
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('gara.Ricerca', {beanRicerca : {nomeGara : '',
+																			numeroGara : '',
+																			data : '',
+																			statoGara : ''},
+																		pagination: {
+																			currentPage : 1,
+																			itemsPerPage : 10,
+																			totalItems : 0,
+														}},'RICERCA_GARA')">
+				Ricerca Gara</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('offerta.Ricerca', {beanRicerca : {nomeProgetto : '',
+																			numeroProgetto : '',
+																			cognomeCreatore : '',
+																			usernameCreatore : '',
+																			statoProgetto : ''},
+																		pagination: {
+																			currentPage : 1,
+																			itemsPerPage : 10,
+																			totalItems : 0,
+																			orderColumnId : 0,
+																			verso : 'DESC'
+														}},'GESTIONE_SCHEDA_OFFERTA')">
+				Scheda Offerta</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('gara.RicercaProv', {
+						idGara: null,
+							gestioneAvanzataBuste: true,
+							gestioneAvanzataRichieste: true	},null)">
+				Buste Gara/Lotto - Inviti</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('gara.RicercaPart', {beanRicerca : {nomeGara : '',
+																			numeroGara : '',
+																			data : '',
+																			statoGara : ''},
+																		pagination: {
+																			currentPage : '1',
+																			itemsPerPage : '10',
+																			totalItems : '0',
+														}},null)">
+				Ricerca Gara Partecipazioni</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('offerta.DettaglioAssociata', {
+																			lotto: {
+																				critAgg:'MP',
+																				critAggLbl:'Minor prezzo',
+																				critAggMod:'MP',
+																				gara:{idProgetto: '819058e5f1641128', idGara: 'f3638f3eca478631', numeroGara: '365', nomeGara: 'ddddddd', flagFunzAvanzateGara:'true', gestioneFunzAvanzate:'NESSUNA', offertaTecTabellare:'false', statoGara:'BOZZA', tipologiaContratto:'LAVORI', tipologiaProcedura:'APERTA', valoreEconomico:'13.243'},
+																				idLotto:'306ea1a1323c7c92',
+																				idSchedaOfferta:'60e4940b1a1312cf',
+																				importoLotto:'13,243',
+																				importoValoreLotto:'13.243',
+																				isLottoUnico:'false',
+																				listaCatDpcm:[],
+																				listaCodCpv:[],
+																				nomeLotto:'Test',
+																				numeroLotto:'2',
+																				ordineLotto:'1',
+																				punteggioEconomico:'0',
+																				punteggioTecnico:'30',
+																				statoLotto:'IN_LAVORAZIONE',
+																				tipoImportoLotto:'VL'
+																			}
+																		},'DETTAGLIO_OFFERTA_ASSOCIATA_PG')">
+				Scheda offerta lotto</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('chiarimenti.Menu', { beanParams: null	},'GESTIONE_CHIARIMENTI')">
+				Richiesta Chiarimenti</button>
+		</a>
+	</div>
+
+	<h1 class="row">Comunicati</h1>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('comunicati.Menu', { beanParams: {}	},'')">
+				Ricerca Comunicati</button>
+		</a>
+	</div>
+
+	<h1 class="row">Comunicazioni</h1>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('comunicazioni.Menu', { beanParams: {}	},'GESTIONE_COMUNICAZIONI')">
+				Ricerca Comunicazioni</button>
+		</a>
+	</div>
+
+	<h1 class="row">Partecipazione</h1>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('partecipazione.Partecipazione', { } ,'GESTIONE_PARTECIPAZIONE')">
+				Avvia nuova procedura
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('partecipazione.lottiPartecipazione', { partecipazione : {idGara : 'e686b854eb97e573' , idPartecipazione : 'afc6b64144f906e6' }, pagination: {
+				currentPage : 1,
+				itemsPerPage : 10,
+				totalItems : 0,
+				orderColumnId : 0,
+				verso : 'ASC'
+}, dettaglioGara : {nomeGara: 'GareduNord' , statoGara:'PUBBLICATA'} , null } )">
+				Lotti Partecipazione
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('offertaPartecipazione.Dettaglio',
+			{ beanParams:{idLotto:'f0622dc8f5df2147',idPartecipazione:'28d176896e3591fa', idGara: '3f09b05fa6b2967f'} , lotto: {idLotto:'f0622dc8f5df2147'},partecipazione:null ,dettaglioGara : {nomeGara: 'GareduNord' , statoGara:'PUBBLICATA'} , null } )">
+				Offerta Partecipazione Dettaglio
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('partecipazione.documentazioneAmministrativa', { partecipazione : {idGara : '3f09b05fa6b2967f' , idPartecipazione : 'fe28ccf2ac3344ca' }, dettaglioGara : {nomeGara: 'GareduNord' , statoGara:'PUBBLICATA'} , null } )">
+				Documentazione Amministrativa
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('partecipazione.riepilogoOfferta', { partecipazione : {idGara : 'e686b854eb97e573' , idPartecipazione : 'afc6b64144f906e6' }, dettaglioGara : {nomeGara: 'GareduNord' , statoGara:'PUBBLICATA'} , null } )">
+				Riepilogo Offerta
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('partecipazione.OfferteLottiScelti', { partecipazione : {idGara : '3f09b05fa6b2967f' , idPartecipazione : '39d1e98be551512c' }, dettaglioGara : {nomeGara: 'GareduNord' , statoGara:'PUBBLICATA'} , null } )">
+				Offerta Lotti
+			</button>
+		</a>
+	</div>
+
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('partecipazione.OfferteLottiScelti', { partecipazione : {idGara : 'd5f53ea4b4b3b15c' , idPartecipazione : '71cda0277514fd89' }, dettaglioGara : {nomeGara: 'GareduNord' , statoGara:'PUBBLICATA'} , null } )">
+				Offerta Lotti con richieste
+			</button>
+		</a>
+	</div>
+
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('partecipazione.accessoGareInviti', { partecipazione : {idGara : '3f09b05fa6b2967f' , idPartecipazione : 'fe28ccf2ac3344ca' }, dettaglioGara : {nomeGara: 'GareduNord' , statoGara:'PUBBLICATA'} , null } )">
+				Accesso Gare Inviti
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('partecipazione.elencoProcedure', {idGara : 'e686b854eb97e573', partecipazione : {idGara : 'e686b854eb97e573' } , dettaglioGara : {nomeGara: 'GareduNord' , statoGara:'PUBBLICATA'} } )">
+				Le tue procedure
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('valutazioneGara.offertePresentate', {gara: {idGara: 'ab4725ee3fb74f0e',
+														nomeGara: 'gara per gestione permessi'} } )">
+				Offerte presentate
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('sedutaPubblica.sorteggio', {partecipazione : {idGara : 'e686b854eb97e573' , idPartecipazione :'b453aa4c86b10b38'} , dettaglioGara : {nomeGara: 'Gara aperta 2 lotti' , statoGara:'PUBBLICATA'} } )">
+				Sorteggio soglia anomalia
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('sedutaPubblica.esameOfferte', {partecipazione : {idGara : 'e686b854eb97e573', idPartecipazione :'b453aa4c86b10b38' } , dettaglioGara : {nomeGara: 'Gara aperta 2 lotti' , statoGara:'PUBBLICATA'} } )">
+				Esame offerte
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('sedutaPubblica.punteggiComplessivi', {partecipazione : {idGara : 'e686b854eb97e573', idPartecipazione :'b453aa4c86b10b38' } , lotto : {idLotto: '415a08cf8a3734ba' }, dettaglioGara : {nomeGara: 'Gara aperta 2 lotti' , statoGara:'PUBBLICATA'} } )">
+				Punteggi
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('sedutaPubblica.graduatoria', {partecipazione : {idGara : 'e686b854eb97e573', idPartecipazione :'b453aa4c86b10b38' } , lotto : {idLotto: '415a08cf8a3734ba' }, dettaglioGara : {nomeGara: 'Gara aperta 2 lotti' , statoGara:'PUBBLICATA'} } )">
+				Graduatoria
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('sedutaPubblica.aggiudicazione', {partecipazione : {idGara : 'e686b854eb97e573', idPartecipazione :'b453aa4c86b10b38' } , lotto : {idLotto: '415a08cf8a3734ba' }, dettaglioGara : {nomeGara: 'Gara aperta 2 lotti' , statoGara:'PUBBLICATA'} } )">
+				Aggiudicazione
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('partecipazione.elencoProcedure', {idGara : '3f68d5096eb88014', partecipazione : {idGara : '3f68d5096eb88014' } , dettaglioGara : {nomeGara: 'Gara sorteggio e seduta pubblica' , statoGara:'PUBBLICATA'} } )">
+				TEST PROCEDURE
+			</button>
+		</a>
+	</div>
+
+ 	<h1 class="row">Gestione autorizzazioni gara</h1>
+	<div class="row">
+ 		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState(
+													'gestioneAutorizzazioni.gestionePermessi',
+ 													{
+ 														gara: {idGara: '670aef803f0f1c4c',
+														nomeGara: 'gara per gestione permessi'}
+ 													},	'GET_RDP_GESTORE_PERMESSI')">
+ 				NON PER TEST - Gestione permessi</button>
+ 		</a>
+ 	</div>
+
+ 	<div class="row">
+ 		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState(
+													'gara.valutazioneEsameOfferte',
+ 													{
+ 														gara: {idGara: 'ae1f80263fc1d468',
+ 															nomeGara: 'test header pa',
+ 															numeroGara: '10000',
+ 															statoGara: 'PUBBLICATA'
+														}
+ 													},	'GET_RDP_GESTORE_PERMESSI')">
+ 				NON PER TEST - VALUTAZIONE ESAME OFFERTE</button>
+ 		</a>
+	 </div>
+
+	 <div class="row">
+		<a>
+		   <button class="button button-block button-positive" data-ng-click="goToState(
+												   'gara.verificaOfferte',
+													{ gara: {idGara: '2456a9193381a4dd'}
+													},	'GET_RDP_GESTORE_PERMESSI')">
+				Gestione anomalia offerte</button>
+		</a>
+	</div>
+ 	<div class="row">
+ 		<a>
+		   <button class="button button-block button-positive" data-ng-click="goToState('partecipazione.elencoProcedure', {idGara : '899698052a06a134', partecipazione : {idGara : '899698052a06a134' } , dettaglioGara : {nomeGara: 'Gara per test scheda riassuntiva vetrina bandi' , statoGara:'PUBBLICATA'} } )">
+				TEST PROCEDURE</button>
+		</a>
+	</div>
+	<h1 class="row">Abilitazione</h1>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('pcc.bando.istanzeDiProgetto', { }, null)">
+				Bando
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('pcc.moduloDatiNotevole', { }, null);">
+				Modulo Dati
+			</button>
+		</a>
+	</div>
+	<div class="row">
+		<a>
+			<button class="button button-block button-positive" data-ng-click="goToState('pcc.utente.login', { }, null)">
+				Utente
+			</button>
+		</a>
+	</div>
+
+</div>

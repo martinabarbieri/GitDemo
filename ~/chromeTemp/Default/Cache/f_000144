@@ -1,0 +1,2318 @@
+var eprocApp = angular.module("eprocApp", ["EprocA", "ngAnimate", "ui.bootstrap",
+  "ngRoute", "ngSanitize", "ui.router", "ui.router.state",
+  'ncy-angular-breadcrumb', 'oc.lazyLoad', "autorizzazioneServices", "authservices", 'ui.tree',
+  "dizionariServices", "documentaleServices", "dateUtilities", "Directives", "timer", "angucomplete-alt", "ng.ckeditor", "pascalprecht.translate"
+]);
+
+eprocApp.controller("homeCtrl",
+  function($scope, EprocAAW, $http, $route, $window, $stateParams) {
+    // $window.location.href = "/opencms/opencms/index.html";
+  }).controller("menuSsaCtrl",
+  function($scope, EprocAAW, $http, $route, $window, $stateParams) {
+    $scope.utenteAutorizzato = true;
+  }).service("backHistory", function() {
+  var backHistory = [];
+  var save = false;
+
+  this.save = function(stateName, stateParams) {
+    if (typeof Object.assign != 'function') {
+      Object.defineProperty(Object, "assign", {
+        value: function assign(target, varArgs) {
+          'use strict';
+          if (target == null) {
+            throw new TypeError('Cannot convert undefined or null to object');
+          }
+          var to = Object(target);
+          for (var index = 1; index < arguments.length; index++) {
+            var nextSource = arguments[index];
+            if (nextSource != null) {
+              for (var nextKey in nextSource) {
+                if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                  to[nextKey] = nextSource[nextKey];
+                }
+              }
+            }
+          }
+          return to;
+        },
+        writable: true,
+        configurable: true
+      });
+    }
+    backHistory.push({
+      stateName: stateName,
+      stateParams: Object.assign({}, stateParams)
+    });
+  };
+
+  this.back = function() {
+    save = false;
+    return backHistory.pop();
+  };
+
+  this.isEmpty = function() {
+    return backHistory.length < 1;
+  };
+
+  this.saveEnabled = function() {
+    return save;
+  }
+
+  this.setSave = function(value) {
+    save = value;
+  }
+
+  this.getLastElement = function() {
+    var lastElement = {
+      stateName: null,
+      stateParams: null
+    };
+    if (backHistory.length > 0) {
+      lastElement = backHistory[backHistory.length - 1];
+    }
+    return lastElement;
+  }
+
+  this.popBackHistory = function() {
+    backHistory.pop();
+  }
+
+  this.svuotaHistory = function() {
+    backHistory = [];
+  }
+});
+
+eprocApp.filter('startFrom', function() {
+  return function(input, start) {
+    if (input) {
+      start = +start;
+      return input.slice(start);
+    }
+    return [];
+  };
+});
+
+
+eprocApp
+  .config(
+    function($stateProvider, $urlRouterProvider,
+      $breadcrumbProvider, $ocLazyLoadProvider, $translateProvider, $translatePartialLoaderProvider) { // $translateProvider,
+      // $translatePartialLoaderProvider
+
+      // NG-Translate
+      $translateProvider.useLoader('$translatePartialLoader', {
+        urlTemplate: 'i18n/{part}/{lang}.json'
+      });
+      // $translatePartialLoaderProvider.addPart('home');
+      $translateProvider.preferredLanguage('it');
+      $translateProvider.usePostCompiling(true);
+      $translateProvider.useSanitizeValueStrategy('escaped');
+      // END NG-Translate
+
+      $breadcrumbProvider.setOptions({
+        prefixStateName: 'home',
+        templateUrl: './views/common/breadCrumbTemplate.html'
+        // template: 'bootstrap3'
+      });
+
+      $urlRouterProvider.otherwise('/menuSsa');
+
+      $stateProvider
+
+        .state('menuSsa', {
+          url: '/menuSsa',
+          params: {
+            beanRicerca: null,
+            pagination: null
+          },
+          templateUrl: './views/menuSsa.html',
+          onEnter: function() {
+            document.title = 'Menu SSA';
+          },
+          controller: 'menuSsaCtrl',
+          ncyBreadcrumb: {
+            label: 'Menu SSA'
+          },
+          saveToHistory: false
+        })
+        .state('home', {
+          url: '/',
+          params: {
+            beanRicerca: null,
+            pagination: null
+          },
+          controller: 'homeCtrl',
+          ncyBreadcrumb: {
+            label: 'Home'
+          },
+          saveToHistory: false
+        })
+
+        // #########  BANDI ######################
+
+        .state(
+          'pcc', {
+            abstract: true,
+            serie: true,
+            resolve: {
+              loadMyService: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/urlService.js',
+                      './js/controllers/pccUtilities.js',
+                      './js/controllers/dimensioni/services/dimensioniFactory.js'
+                    ])
+                }
+              ]
+            },
+            saveToHistory: false
+          })
+
+        .state(
+          'pcc.bando', {
+            abstract: true,
+            serie: true,
+            resolve: {
+              loadMyService: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/bando/aiServices.js',
+                      './js/controllers/bando/services/bando.factory.js',
+                      './js/controllers/bando/services/regoleAccesso.factory.js',
+                      './js/controllers/bando/services/documentazione.factory.js',
+                      './js/controllers/utente/uteServices.js',
+                      './js/controllers/utente/factories/utenteFactory.js',
+                      './js/controllers/utente_bo/uteBoServices.js',
+                      './js/controllers/bando/services/redirectService.js',
+                    ]).then(function() {
+                      try {
+                        angular.module('aiServices')
+                      } catch (err) {
+                        angular.module("eprocApp").requires.push('aiServices');
+                      }
+                    })
+                }
+              ],
+              injectMyDnd: [
+                function() {
+                  angular.module("eprocApp").requires.push('dndLists');
+                }
+              ]
+            },
+            saveToHistory: false
+          })
+        .state(
+          'pcc.bando.istanzeDiProgetto', {
+            url: '/bando',
+            params: {},
+            ncyBreadcrumb: {
+              label: 'Istanze di Progetto'
+            },
+            templateUrl: './views/bando/istanzediprogetto.html',
+            onEnter: function() {
+              document.title = 'Bando';
+            },
+            controller: 'istanzeDiProgettoController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/bando/istanzeProgetto.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.bando.bndTree', {
+            url: '/bando/riepilogo',
+            params: {},
+            ncyBreadcrumb: {
+              label: 'Dettaglio Bando',
+              parent: 'pcc.bando.istanzeDiProgetto'
+            },
+            templateUrl: './views/bando/bndTree.html',
+            onEnter: function() {
+              document.title = 'Bando';
+            },
+            controller: 'bndTreeCtrl',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/bando/tabs/statoCtrl.js',
+                      './js/controllers/bando/tabs/attributiCtrl.js',
+                      './js/controllers/bando/tabs/documentazioneCtrl.js',
+                      './js/controllers/bando/tabs/regoleAccessoCtrl.js',
+                      './js/controllers/bando/moduloDati/mdlDatiBandoController.js',
+                      './js/controllers/bando/moduloDati/sezioniBandoController.js',
+                      './js/controllers/bando/moduloDati/requisitoBandoController.js',
+                      './js/controllers/moduloDati/controllers/moduloDatiController.js',
+                      './js/controllers/moduloDati/controllers/sezioniController.js',
+                      './js/controllers/moduloDati/controllers/requisitoController.js',
+                      './js/controllers/moduloDati/services/moduloDati.factory.js',
+                      './js/controllers/moduloDati/services/utilities.factory.js',
+                      './js/controllers/bando/bndTreeCtrl.js',
+                      './js/controllers/bando/directives/resizer.js',
+                      './js/controllers/bando/directives/heightWatcher.js'
+                    ]);
+                }
+              ],
+              loadMdlModule: [
+                '$ocLazyLoad', '$translate',
+                function($ocLazyLoad, $translate) {
+                  angular.module("eprocApp").requires.push('dndLists');
+                  $translatePartialLoaderProvider.addPart('moduloDati');
+                  $translate.refresh();
+                  return $ocLazyLoad
+                    .load([])
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.bando.gestioneTemplate', {
+            url: '/bando/gestione_templates',
+            params: {},
+            templateUrl: './views/bando/gestioneTemplate.html',
+            onEnter: function() {
+              document.title = 'Gestione template';
+            },
+            ncyBreadcrumb: {
+              label: 'Template',
+              parent: 'pcc.bando'
+            },
+            controller: 'gestioneTemplateController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/bando/gestioneTemplateController.js',
+                      './js/controllers/moduloDati/services/moduloDati.factory.js'
+                    ]);
+                }
+              ]
+            }
+          })
+        .state(
+          'pcc.bando.formTemplate', {
+            url: '/bando/template',
+            params: {
+              'u': null,
+              'fgModifica': false,
+              'template': null
+            },
+            templateUrl: './views/bando/formTemplate.html',
+            onEnter: function() {
+              document.title = 'Form template';
+            },
+            ncyBreadcrumb: {
+              label: 'Form template',
+              parent: 'pcc.bando'
+            },
+            controller: 'formTemplateController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/bando/formTemplateController.js']);
+                }
+              ]
+            }
+          })
+
+        .state(
+          'pcc.bando.bandiAmministrativi', {
+            url: '/bando/bandiAmministrativi',
+            params: {
+              filter: {}
+            },
+            templateUrl: './views/bando/bandiAmministrativi.html',
+            onEnter: function() {
+              document.title = 'Bandi Amministrativi';
+            },
+            ncyBreadcrumb: {
+              label: 'Bandi Amministrativi',
+              parent: 'pcc.bando'
+            },
+            controller: 'bandiAmministrativiController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/bando/bandiAmministrativiController.js',
+                      './js/controllers/utente/uteServices.js'
+                    ]);
+                }
+              ]
+            }
+          })
+        .state(
+          'pcc.bando.bandoAmministrativo', {
+            url: '/bando/bandoAmministrativo',
+            params: {
+              data: null,
+              filter: {}
+            },
+            templateUrl: './views/bando/bandoAmministrativo.html',
+            onEnter: function() {
+              document.title = 'Bando Amministrativo';
+            },
+            ncyBreadcrumb: {
+              label: 'Bando Amministrativo',
+              parent: 'pcc.bando'
+            },
+            controller: 'bandoAmministrativoController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/bando/bandoAmministrativoController.js',
+                      './js/controllers/utente/uteServices.js'
+                    ]);
+                }
+              ]
+            }
+          })
+        .state(
+          'pcc.bando.storicoBando', {
+            url: '/bando/storicoBando',
+            params: {},
+            templateUrl: './views/bando/storicoBando.html',
+            ncyBreadcrumb: {
+              label: 'Storico Bando',
+              parent: 'pcc.bando'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Storico Bando';
+            },
+            controller: 'storicoBandoController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/bando/storicoBandoController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.bando.storicoPercorsoNettoPC', {
+            url: '/bando/storicoPercorsoNettoPC',
+            params: {},
+            templateUrl: './views/bando/storicoPercorsoNettoPC.html',
+            ncyBreadcrumb: {
+              label: 'Storico Percorso Netto Pratiche Commerciali',
+              parent: 'pcc.bando'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Storico Percorso Netto Pratiche Commerciali';
+            },
+            controller: 'storicoPercorsoNettoPCController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/bando/storicoPercorsoNettoPCController.js');
+                }
+              ],
+              addPartTranslate: ['$translate', function($translate) {
+                $translatePartialLoaderProvider.addPart('moduloDati')
+                $translate.refresh()
+              }]
+            }
+          })
+        .state(
+          'pcc.bando.percorsoNettoPC', {
+            url: '/bando/percorsoNettoPC',
+            params: {},
+            templateUrl: './views/bando/percorsoNettoPC.html',
+            ncyBreadcrumb: {
+              label: 'Percorso Netto Pratiche Commerciali',
+              parent: 'pcc.bando'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Percorso Netto Pratiche Commerciali';
+            },
+            controller: 'percorsoNettoPCController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/bando/percorsoNettoPCController.js');
+                }
+              ],
+              addPartTranslate: ['$translate', function($translate) {
+                $translatePartialLoaderProvider.addPart('moduloDati')
+                $translate.refresh()
+              }]
+            }
+          })
+
+        // ############# FINE BANDI ##################
+
+        // ############# MODULO DATI ##################
+        .state(
+          'pcc.moduloDatiNotevole', {
+            url: '/moduloDatiNotevoli',
+            params: {
+              data: null
+            },
+            templateUrl: './views/moduloDati/mdlDatiNotevole.html',
+            onEnter: function() {
+              document.title = 'Modulo Dati Notevoli';
+            },
+            ncyBreadcrumb: {
+              label: 'Modulo Dati Notevoli',
+              parent: 'pcc'
+            },
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/moduloDati/mdlDatiNotevoleController.js'])
+                }
+              ],
+              loadMdlModule: [
+                '$ocLazyLoad', '$translate',
+                function($ocLazyLoad, $translate) {
+                  $translatePartialLoaderProvider.addPart('moduloDati')
+                  $translate.refresh()
+                  return $ocLazyLoad
+                    .load(['./js/controllers/moduloDati/services/moduloDati.factory.js',
+                      './js/controllers/bando/services/bando.factory.js',
+                      './js/controllers/moduloDati/services/utilities.factory.js',
+                      './js/controllers/moduloDati/controllers/moduloDatiController.js',
+                    ])
+                }
+              ]
+            },
+            controller: 'mdlDatiNotevoleController',
+            saveToHistory: true
+          })
+        .state(
+          'pcc.sezioniNotevole', {
+            url: '/sezioniNotevole',
+            params: {
+              data: null
+            },
+            templateUrl: './views/moduloDati/sezioniNotevole.html',
+            onEnter: function() {
+              document.title = 'Modulo Dati Notevole - Sezioni';
+            },
+            ncyBreadcrumb: {
+              label: 'Modulo Dati Notevole - Sezione',
+              parent: 'pcc.moduloDatiNotevole'
+            },
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/moduloDati/sezioniNotevoleController.js'])
+                }
+              ],
+              loadMdlModule: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load([
+                      './js/controllers/moduloDati/controllers/sezioniController.js',
+                    ])
+                }
+              ]
+            },
+            controller: 'sezioniNotevoleController',
+            saveToHistory: true
+          })
+        .state(
+          'pcc.requisitoNotevole', {
+            url: '/requisitoNotevole',
+            params: {
+              data: null
+            },
+            templateUrl: './views/moduloDati/requisitoNotevole.html',
+            onEnter: function() {
+              document.title = 'Modulo Dati Notevole - Requisito';
+            },
+            ncyBreadcrumb: {
+              label: 'Modulo Dati Notevole - Requisito',
+              parent: 'pcc.sezioniNotevole'
+            },
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/moduloDati/requisitoNotevoleController.js',
+                      './js/controllers/common/directives/base-sixty-four-input.js'
+                    ])
+                }
+              ],
+              loadMdlModule: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load([
+                      './js/controllers/moduloDati/controllers/requisitoController.js',
+                    ])
+                }
+              ]
+            },
+            controller: 'requisitoNotevoleController',
+            saveToHistory: true
+          })
+        .state(
+          'pcc.demo', {
+            url: '/demo',
+            params: {
+              data: null
+            },
+            templateUrl: './views/moduloDati/demo.html',
+            onEnter: function() {
+              document.title = 'Modulo Dati Notevole - Demo';
+            },
+            ncyBreadcrumb: {
+              label: 'Modulo Dati Notevole - Demo',
+              parent: 'pcc.moduloDatiNotevole'
+            },
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/moduloDati/demoController.js'])
+                }
+              ],
+              loadMdlModule: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/moduloDati/services/modulo.factory.js',
+                      './js/controllers/moduloDati/demoController.js',
+                    ])
+                }
+              ]
+            },
+            controller: 'demoController',
+            saveToHistory: true
+          })
+        .state(
+          'pcc.percorsoNettoPA', {
+            url: '/percorsoNettoPA',
+            params: {},
+            templateUrl: './views/moduloDati/percorsoNettoPA.html',
+            onEnter: function() {
+              document.title = 'Percorso Netto Pratiche Amministrative';
+            },
+            ncyBreadcrumb: {
+              label: 'Percorso Netto Pratiche Amministrative',
+              parent: 'pcc'
+            },
+            controller: 'percorsoNettoPAController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/moduloDati/percorsoNettoPAController.js',
+                      './js/controllers/moduloDati/infoFisseUteImpController.js',
+                      './js/controllers/moduloDati/services/redirectService.js',
+                      './js/controllers/moduloDati/services/moduloDati.factory.js',
+                    ]);
+                }
+              ],
+              addPartTranslate: ['$translate', function($translate) {
+                $translatePartialLoaderProvider.addPart('moduloDati')
+                $translate.refresh()
+              }]
+            }
+          })
+        .state(
+          'pcc.storicoPercorsoNettoPA', {
+            url: '/storicoPercorsoNettoPA',
+            params: {},
+            templateUrl: './views/moduloDati/storicoPercorsoNettoPA.html',
+            onEnter: function() {
+              document.title = 'Storico Percorso Netto Pratiche Amministrative';
+            },
+            ncyBreadcrumb: {
+              label: 'Storico Percorso Netto Pratiche Amministrative',
+              parent: 'pcc'
+            },
+            controller: 'storicoPercorsoNettoPAController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/moduloDati/storicoPercorsoNettoPAController.js',
+                      './js/controllers/moduloDati/services/redirectService.js',
+                      './js/controllers/moduloDati/services/moduloDati.factory.js',
+
+                    ]);
+                }
+              ],
+              addPartTranslate: ['$translate', function($translate) {
+                $translatePartialLoaderProvider.addPart('moduloDati')
+                $translate.refresh()
+              }]
+            }
+          })
+        // ############# FINE MODULO DATI ##################
+
+        // ######### UTENTE ######################
+        .state(
+          'pcc.utente', {
+            abstract: true,
+            serie: true,
+            ncyBreadcrumb: {
+              label: 'Utente',
+              parent: 'menuSsa'
+            },
+            resolve: {
+              loadMyUteService: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/utente/uteServices.js',
+                      './js/controllers/utente/sediaModalController.js',
+                      './js/controllers/moduloDati/services/moduloDati.factory.js',
+                      './js/controllers/moduloDati/controllers/moduloDatiController.js',
+                      './js/controllers/moduloDati/controllers/sezioniController.js',
+                      './js/controllers/moduloDati/controllers/requisitoController.js',
+                      './js/controllers/moduloDati/services/moduloDati.factory.js',
+                      './js/controllers/moduloDati/services/utilities.factory.js',
+                      './js/controllers/bando/services/bando.factory.js',
+                      './js/controllers/utente_bo/factories/utenteBoFactory.js',
+                      './js/libs/plugins/tinymce/tinymce.js',
+                      './js/libs/plugins/angular-ui-tinymce/src/tinymce.js',
+                      './js/controllers/common/directives/base-sixty-four-input.js'
+                    ])
+                    .then(function() {
+                      try {
+                        angular.module('uteServices')
+                      } catch (err) {
+                        angular.module("eprocApp").requires.push('uteServices');
+                      }
+                    })
+                }
+              ],
+              loadMyMisc: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/utente/uteServices.js',
+                      './js/controllers/utente/factories/validationFactory.js',
+                      './js/controllers/utente/factories/utenteFactory.js',
+                      './js/controllers/utente/services/emailService.js',
+                      './js/controllers/utente/services/redirectService.js',
+                    ])
+                }
+              ],
+              addPartTranslate: ['$translate', function($translate) {
+                $translatePartialLoaderProvider.addPart('utente')
+                $translate.refresh()
+              }]
+            },
+            saveToHistory: false
+          })
+        .state(
+          'pcc.utente.login', {
+            url: '/utente/login',
+            params: {},
+            templateUrl: './views/utente/login.html',
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            ncyBreadcrumb: {
+              label: 'Login',
+              parent: 'pcc.utente'
+            },
+            controller: 'loginController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/utente/loginController.js']);
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.confermaLogin', {
+            url: '/utente/confermaLogin',
+            params: {
+              r: null,
+              userid: null
+            },
+            templateUrl: './views/utente/confermaLogin.html',
+            onEnter: function() {
+              document.title = 'Eproc2 - Conferma Login';
+            },
+            ncyBreadcrumb: {
+              label: 'Conferma Login',
+              parent: 'pcc.utente.login'
+            },
+            controller: 'confermaLoginController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/confermaLoginController.js');
+                }
+              ],
+              loadIntlTel: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/libs/plugins/ngintltel/intlTelInput/intlTelInput.js',
+                      './js/libs/plugins/ngintltel/intlTelInput/utils.js',
+                      './js/libs/plugins/ngintltel/intlTelInput/intlTelInput.css',
+                      './js/libs/plugins/ngintltel/ng-intl-tel-input.js'
+                    ])
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.emailRegistrazione', {
+            url: '/utente/emailRegistrazione',
+            params: {},
+            templateUrl: './views/utente/emailRegistrazione.html',
+            ncyBreadcrumb: {
+              label: 'Email Registrazione',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'emailRegistrazioneController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/emailRegistrazioneController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.registrazione', {
+            url: '/utente/registrazione',
+            params: {
+              r: null,
+              email: null
+            },
+            templateUrl: './views/utente/registrazione.html',
+            ncyBreadcrumb: {
+              label: 'Registrazione',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'registrazioneController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/registrazioneController.js');
+                }
+              ],
+              loadIntlTel: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/libs/plugins/ngintltel/intlTelInput/intlTelInput.js',
+                      './js/libs/plugins/ngintltel/intlTelInput/utils.js',
+                      './js/libs/plugins/ngintltel/intlTelInput/intlTelInput.css',
+                      './js/libs/plugins/ngintltel/ng-intl-tel-input.js'
+                    ])
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.registrazioneEffettuata', {
+            url: '/utente/registrazioneEffettuata',
+            params: {
+              userid: null
+            },
+            templateUrl: './views/utente/registrazioneEffettuata.html',
+            ncyBreadcrumb: {
+              label: 'Registrazione Effettuata',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'registrazioneEffettuataController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/registrazioneEffettuataController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.menu', {
+            url: '/utente/menu',
+            params: {},
+            templateUrl: './views/utente/menu.html',
+            ncyBreadcrumb: {
+              label: 'Menù SSA',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'menuController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/utente/menuController.js',
+                      './js/controllers/conservazione/inviiNegativiController.js',
+                      './js/controllers/conservazione/inviiNegativiFirmaController.js'
+                    ]);
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.cambioEmail', {
+            url: '/utente/cambioEmail',
+            params: {},
+            templateUrl: './views/utente/cambioEmail.html',
+            ncyBreadcrumb: {
+              label: 'Modifica email',
+              parent: 'pcc.utente.modificaUtente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'cambioEmailController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/cambioEmailController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.cambioPassword', {
+            url: '/utente/cambioPassword',
+            params: {
+              r: null,
+              richiesta: null
+            },
+            templateUrl: './views/utente/cambioPassword.html',
+            ncyBreadcrumb: {
+              label: 'Cambio Password',
+              parent: 'pcc.utente.modificaUtente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'cambioPasswordController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/cambioPasswordController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.cancellaRegistrazione', {
+            url: '/utente/cancellaRegistrazione',
+            params: {},
+            templateUrl: './views/utente/cancellaRegistrazione.html',
+            ncyBreadcrumb: {
+              label: 'Cancella Registrazione',
+              parent: 'pcc.utente.modificaUtente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'cancellaRegistrazioneController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/cancellaRegistrazioneController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.cancellato', {
+            url: '/utente/cancellato',
+            params: {},
+            templateUrl: './views/utente/cancellato.html',
+            ncyBreadcrumb: {
+              label: 'Cancellazione Avvenuta',
+              parent: 'pcc.utente.login'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'cancellatoController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/cancellatoController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.r', {
+            url: '/r',
+            params: {
+              message: null
+            },
+            templateUrl: './views/utente/r.html',
+            onEnter: function() {
+              document.title = 'Eproc2 - redirect';
+            },
+            controller: 'rController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/rController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.datiUtente', {
+            url: '/utente/datiUtente',
+            params: {
+              idUtente: null,
+              filter: []
+            },
+            templateUrl: './views/utente/datiUtente.html',
+            ncyBreadcrumb: {
+              label: 'Dati Utente',
+              parent: 'pcc.utente.gestioneUtenti'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'datiUtenteController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/bando/directives/heightWatcher.js',
+                      './js/controllers/utente/datiUtenteController.js'
+                    ]);
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.dettaglioModificaSsaDatiUtente', {
+            url: '/utente/dettaglioModificaDatiUtente',
+            params: {
+              detail: null,
+              idUtente: null,
+              filter: [],
+              userid: null,
+              useridModded: null
+            },
+            templateUrl: './views/utente/dettaglioModificaSsaUtente.html',
+            ncyBreadcrumb: {
+              label: 'Dettaglio Modifica',
+              parent: 'pcc.utente.datiUtente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'dettaglioModificaSsaUtenteController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/dettaglioModificaSsaUtenteController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.modificaSsaDatiUtente', {
+            url: '/utente/modificaDatiUtente',
+            params: {
+              data: null,
+              idUtente: null,
+              nazioneNascita: null,
+              filter: [],
+              userid: null
+            },
+            templateUrl: './views/utente/modificaSsaDatiUtente.html',
+            ncyBreadcrumb: {
+              label: 'Modifica Dati Utente',
+              parent: 'pcc.utente.datiUtente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'modificaSsaDatiUtenteController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/modificaSsaDatiUtenteController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.emailInviata', {
+            url: '/utente/emailInviata',
+            params: {
+              email: null
+            },
+            templateUrl: './views/utente/emailInviata.html',
+            ncyBreadcrumb: {
+              label: 'Richiesta inviata',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'emailInviataController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/emailInviataController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.emailPending', {
+            url: '/utente/emailPending',
+            params: {},
+            templateUrl: './views/utente/emailPending.html',
+            ncyBreadcrumb: {
+              label: 'Pending',
+              parent: 'pcc.utente.menu'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'emailPendingController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/emailPendingController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.gestioneUtenti', {
+            url: '/utente/gestioneUtenti',
+            params: {
+              filter: null
+            },
+            templateUrl: './views/utente/gestioneUtenti.html',
+            ncyBreadcrumb: {
+              label: 'Gestione Utenti',
+              parent: 'pcc.utente.menu'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'gestioneUtentiController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/gestioneUtentiController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.modificaUtente', {
+            url: '/utente/modificaUtente',
+            params: {},
+            templateUrl: './views/utente/modificaUtente.html',
+            ncyBreadcrumb: {
+              label: 'Modifica Utente',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'modificaUtenteController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/modificaUtenteController.js');
+                }
+              ],
+              loadIntlTel: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/libs/plugins/ngintltel/intlTelInput/intlTelInput.js',
+                      './js/libs/plugins/ngintltel/intlTelInput/utils.js',
+                      './js/libs/plugins/ngintltel/intlTelInput/intlTelInput.css',
+                      './js/libs/plugins/ngintltel/ng-intl-tel-input.js'
+                    ])
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.recuperoPassword', {
+            url: '/utente/recuperoPassword',
+            params: {
+              r: null
+            },
+            templateUrl: './views/utente/recuperoPassword.html',
+            ncyBreadcrumb: {
+              label: 'Recupero Password',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'recuperoPasswordController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/recuperoPasswordController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.recuperoUtenza', {
+            url: '/utente/recuperoUtenza',
+            params: {
+              r: null
+            },
+            templateUrl: './views/utente/recuperoUtenza.html',
+            ncyBreadcrumb: {
+              label: 'Recupero Utenza',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Registrazione';
+            },
+            controller: 'recuperoUtenzaController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/recuperoUtenzaController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente.gestioneDisclaimer', {
+            url: '/utente/gestioneDisclaimer',
+            params: {},
+            templateUrl: './views/utente/gestioneDisclaimer.html',
+            ncyBreadcrumb: {
+              label: 'Gestione Disclaimer',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Gestione Disclaimer';
+            },
+            controller: 'gestioneDisclaimerController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/utente/directives/disclaimerFilter.js',
+                      './js/controllers/utente/gestioneDisclaimer.js',
+                      './js/controllers/utente/directives/dateFormatter.js'
+                    ]);
+                }
+              ],
+              injectMyDnd: [
+                function() {
+                  angular.module("eprocApp").requires.push('dndLists');
+                }
+              ]
+            }
+          })
+        .state(
+          'pcc.utente.editDisclaimer', {
+            url: '/utente/editDisclaimer',
+            params: {},
+            templateUrl: './views/utente/editDisclaimer.html',
+            ncyBreadcrumb: {
+              label: 'Visualizza Disclaimer',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Modifica Disclaimer';
+            },
+            controller: 'editDisclaimerController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/editDisclaimer.js');
+                }
+              ]
+            }
+          })
+        .state(
+          'pcc.utente.gestioneStoriaDisclaimer', {
+            url: '/utente/gestioneStoriaDisclaimer',
+            params: {},
+            templateUrl: './views/utente/gestioneStoriaDisclaimer.html',
+            ncyBreadcrumb: {
+              label: 'Storia Disclaimer',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Storia Disclaimer';
+            },
+            controller: 'gestioneStoriaDisclaimerController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/utente/gestioneStoriaDisclaimer.js',
+                      './js/controllers/utente/directives/dateFormatter.js'
+                    ]);
+                }
+              ]
+            }
+          })
+        .state(
+          'pcc.utente.viewStoriaDisclaimer', {
+            url: '/utente/viewStoriaDisclaimer',
+            params: {},
+            templateUrl: './views/utente/viewStoriaDisclaimer.html',
+            ncyBreadcrumb: {
+              label: 'Storia Disclaimer',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Storia Disclaimer';
+            },
+            controller: 'viewStoriaDisclaimerController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/viewStoriaDisclaimer.js');
+                }
+              ]
+            }
+          })
+        .state(
+          'pcc.utente.newDisclaimer', {
+            url: '/utente/newDisclaimer',
+            params: {},
+            templateUrl: './views/utente/newDisclaimer.html',
+            ncyBreadcrumb: {
+              label: 'Nuovo Disclaimer',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Nuovo Disclaimer';
+            },
+            controller: 'newDisclaimerController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente/newDisclaimer.js');
+                }
+              ]
+            }
+          })
+
+        // ############# FINE UTENTE ##################
+
+        // #########  UTENTE_BO ######################
+        .state(
+          'pcc.utente_bo', {
+            abstract: true,
+            serie: true,
+            resolve: {
+              loadMyUteBoService: ['$ocLazyLoad', function($ocLazyLoad) {
+                return $ocLazyLoad.load(['./js/controllers/utente_bo/uteBoServices.js']).then(function() {
+                  try {
+                    angular.module('uteBoServices')
+                  } catch (err) {
+                    angular.module("eprocApp").requires.push('uteBoServices');
+                  }
+                })
+              }],
+              loadMyServices: ['$ocLazyLoad', function($ocLazyLoad) {
+                return $ocLazyLoad.load(['./js/controllers/utente_bo/factories/utenteBoFactory.js',
+                  './js/controllers/utente/factories/utenteFactory.js',
+                  './js/controllers/conservazione/factories/conservazione.factory.js',
+                  './js/controllers/utente/factories/validationFactory.js',
+                  './js/controllers/utente/services/emailService.js',
+                  './js/controllers/utente_bo/services/redirectService.js',
+                  './js/controllers/conservazione/conservazioneNormaModal.js',
+                  './js/controllers/common/directives/base-sixty-four-input.js'
+                ])
+              }],
+              loadChart: ['$ocLazyLoad', function($ocLazyLoad) {
+                return $ocLazyLoad.load(['./js/libs/plugins/chart/Chart.min.js']).then(function() {
+                  $ocLazyLoad.load(['./js/libs/plugins/chart/angular-chart.min.js'])
+                })
+              }],
+              addPartTranslate: ['$translate', function($translate) {
+                $translatePartialLoaderProvider.addPart('utente_bo')
+                $translate.refresh()
+              }]
+            },
+            saveToHistory: false
+          })
+        .state(
+          'pcc.utente_bo.afterLogin', {
+            url: '/utente/homeUtente',
+            params: {},
+            templateUrl: './views/utente_bo/afterLogin.html',
+            ncyBreadcrumb: {
+              label: 'Home Utente',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'afterLoginController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/utente_bo/afterLoginController.js',
+                      './js/controllers/utente/sidemenuController.js',
+                      './js/controllers/utente/sediaModalController.js'
+                    ]);
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.abilitazioneList', {
+            url: '/utente/abilitazioneList',
+            params: {},
+            templateUrl: './views/utente_bo/abilitazionePaList.html',
+            ncyBreadcrumb: {
+              label: 'Lista Abilitazioni',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'abilitazionePaListController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/abilitazionePaListController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.abilitazioneListDUE', {
+            url: '/utente/abilitazioneListDUE',
+            params: {},
+            templateUrl: './views/utente_bo/abilitazionePaListDUE.html',
+            ncyBreadcrumb: {
+              label: 'Lista Abilitazioni',
+              parent: 'pcc.utente'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'abilitazionePaListDUEController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/abilitazionePaListDUEController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.amministrazioneSSA', {
+            url: '/utente/amministrazioneSSA?u=',
+            params: {},
+            templateUrl: './views/utente_bo/amministrazioneSSA.html',
+            ncyBreadcrumb: {
+              label: 'Amministrazione SSA',
+              parent: 'pcc.utente_bo.amministrazioneSSAList'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'amministrazioneSSAController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/amministrazioneSSAController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.amministrazioneSSAList', {
+            url: '/utente/amministrazioneSSAList',
+            params: {},
+            templateUrl: './views/utente_bo/amministrazioneSSAList.html',
+            ncyBreadcrumb: {
+              label: 'Lista Amministrazioni SSA',
+              parent: 'pcc.utente.menu'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'amministrazioneSSAListController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/amministrazioneSSAListController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.delega', {
+            url: '/utente/delega',
+            params: {},
+            templateUrl: './views/utente_bo/delega.html',
+            ncyBreadcrumb: {
+              label: 'Delega Abilitazione',
+              parent: 'pcc.utente_bo.dettaglioAbilitazione'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'delegaController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/utente_bo/delegaController.js',
+                      './js/controllers/utente_bo/directives/errorOnDatepicker.js'
+                    ]);
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.dettagliDelega', {
+            url: '/utente/dettagliDelega',
+            params: {},
+            templateUrl: './views/utente_bo/dettagliDelega.html',
+            ncyBreadcrumb: {
+              label: 'Delega',
+              parent: 'pcc.utente_bo.abilitazioneList'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'dettagliDelegaController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/dettagliDelegaController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.dettaglioAbilitazione', {
+            url: '/utente/dettaglioAbilitazione',
+            params: {},
+            templateUrl: './views/utente_bo/dettaglioAbilitazione.html',
+            ncyBreadcrumb: {
+              label: 'Abilitazione',
+              parent: 'pcc.utente_bo.abilitazioneList'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'dettaglioAbilitazioneController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/dettaglioAbilitazioneController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.gestioneAmministrazione', {
+            url: '/utente/gestioneAmministrazione',
+            params: {},
+            templateUrl: './views/utente_bo/gestioneAmministrazione.html',
+            ncyBreadcrumb: {
+              label: 'Abilitazione',
+              parent: 'pcc.utente_bo.abilitazioneList'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'gestioneAmministrazioneController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/gestioneAmministrazioneController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.richiestaDettaglio', {
+            url: '/utente/richiestaDettaglio',
+            params: {},
+            templateUrl: './views/utente_bo/dettaglioRichiesta.html',
+            ncyBreadcrumb: {
+              label: 'Richiesta Abilitazione',
+              parent: 'pcc.utente_bo.abilitazioneList'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'dettaglioRichiestaController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/dettaglioRichiestaController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.newPI', {
+            url: '/utente/newPI',
+            params: {},
+            templateUrl: './views/utente_bo/newPI.html',
+            ncyBreadcrumb: {
+              label: 'Nuovo PI Abilitazione',
+              parent: 'pcc.utente_bo.dettaglioAbilitazione'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'newPIController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/newPIController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.nuovaRichiesta', {
+            url: '/utente/nuovaRichiesta',
+            params: {},
+            templateUrl: './views/utente_bo/nuovaRichiesta.html',
+            ncyBreadcrumb: {
+              label: 'Nuova Richiesta Abilitazione',
+              parent: 'pcc.utente_bo.abilitazioneList'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'nuovaRichiestaController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/nuovaRichiestaController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.gestioneRichiestaAbilitazione', {
+            url: '/utente/gestioneRichiestaAbilitazione',
+            params: {},
+            templateUrl: './views/utente_bo/gestioneRichiestaAbilitazione.html',
+            ncyBreadcrumb: {
+              label: 'Gestione nuova Richiesta Abilitazione',
+              parent: 'pcc.utente_bo.abilitazioneList'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'gestioneRichiestaAbilitazioneController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/gestioneRichiestaAbilitazioneController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.gestioneRichiestaAbilitazioneSSA', {
+            url: '/utente/gestioneRichiestaAbilitazioneSSA',
+            params: {
+              tipoRichiesta: null
+            },
+            templateUrl: './views/utente_bo/gestioneRichiestaAbilitazioneSSA.html',
+            ncyBreadcrumb: {
+              label: 'Gestione nuova Richiesta Abilitazione',
+              parent: 'pcc.utente_bo.abilitazioneList'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'richiestaSSAController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/richiestaSSAController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.richiestaSSA', {
+            url: '/utente/richiestaSSA',
+            params: {},
+            templateUrl: './views/utente_bo/richiestaSSA.html',
+            ncyBreadcrumb: {
+              label: 'Lista Abilitazioni',
+              parent: 'pcc.utente_bo.richiestaSSAList'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'richiestaSSAController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/richiestaSSAController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.richiestaSSAList', {
+            url: '/utente/richiestaSSAList',
+            params: {},
+            templateUrl: './views/utente_bo/richiestaSSAList.html',
+            ncyBreadcrumb: {
+              label: 'Lista Abilitazioni',
+              parent: 'pcc.utente.menu'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'richiestaSSAListController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/richiestaSSAListController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.subentroAbilitazione', {
+            url: '/utente/subentroAbilitazione',
+            params: {},
+            templateUrl: './views/utente_bo/subentroAbilitazione.html',
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'subentroAbilitazioneController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/subentroAbilitazioneController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.subentroRicerca', {
+            url: '/utente/subentroRicerca',
+            params: {},
+            templateUrl: './views/utente_bo/subentroRicerca.html',
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            controller: 'subentroRicercaController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/utente_bo/subentroRicercaController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.conservazioneNormaList', {
+            url: '/utente/conservazioneNorma',
+            params: {},
+            templateUrl: './views/conservazione/conservazioneNormaList.html',
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            ncyBreadcrumb: {
+              label: 'Conservazione a norma',
+              parent: 'pcc.utente.menu'
+            },
+            controller: 'conservazioneNormaListController',
+            resolve: {
+              loadMyCtrl: ['$ocLazyLoad', function($ocLazyLoad) {
+                return $ocLazyLoad.load('./js/controllers/conservazione/conservazioneNormaListController.js')
+              }]
+            },
+          })
+        .state(
+          'pcc.utente_bo.gestioneRichiesteDocumenti', {
+            url: '/utente/gestioneRichiesteDocumenti',
+            params: {},
+            templateUrl: './views/conservazione/gestioneRichiesteDocumenti.html',
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            ncyBreadcrumb: {
+              label: 'Gestione Richieste Documenti',
+              parent: 'pcc.utente.menu'
+            },
+            controller: 'gestioneRichiesteDocumentiController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/conservazione/gestioneRichiesteDocumentiController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.reportistica', {
+            url: '/utente/reportistica',
+            params: {},
+            templateUrl: './views/conservazione/reportistica.html',
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            ncyBreadcrumb: {
+              label: 'Reportistica',
+              parent: 'pcc.utente.menu'
+            },
+            controller: 'reportisticaController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/conservazione/reportisticaController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.utente_bo.monitoraggioErrori', {
+            url: '/utente/monitoraggioErrori',
+            params: {},
+            templateUrl: './views/conservazione/monitoraggioErrori.html',
+            onEnter: function() {
+              document.title = 'Eproc2 - Abilitazione';
+            },
+            ncyBreadcrumb: {
+              label: 'Monitoraggio Errori',
+              parent: 'pcc.utente.menu'
+            },
+            controller: 'monitoraggioErroriController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/conservazione/monitoraggioErroriController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.impresa.gestioneCollaboratori', {
+            url: '/impresa/gestioneCollaboratori',
+            params: {},
+            templateUrl: './views/impresa/gestioneCollaboratori.html',
+            onEnter: function() {
+              document.title = 'Gestione collaboratori';
+            },
+            ncyBreadcrumb: {
+              label: 'Collaboratori',
+              parent: 'pcc.impresa'
+            },
+            controller: 'gestioneCollaboratoriController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/impresa/gestioneCollaboratoriController.js']);
+                }
+              ]
+            }
+          })
+        .state(
+          'pcc.impresa.nominaCollaboratori', {
+            url: '/impresa/nominaCollaboratori',
+            params: {},
+            templateUrl: './views/impresa/nominaCollaboratori.html',
+            onEnter: function() {
+              document.title = 'Nomina collaboratori';
+            },
+            ncyBreadcrumb: {
+              label: 'Collaboratori',
+              parent: 'pcc.impresa.gestioneCollaboratori'
+            },
+            controller: 'nominaCollaboratoriController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load(['./js/controllers/impresa/nominaCollaboratoriController.js']);
+                }
+              ]
+            }
+          })
+        // ############# FINE UTENTE_BO ###################
+
+        // ############# REGISTRAZIONE IMPRESA ################
+
+        .state(
+          'pcc.registrazioneImpresa', {
+            abstract: true,
+            serie: true,
+            resolve: {
+              loadMyService: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad.load(['./js/controllers/registrazioneImpresa/services/registrazioneImpresa.factory.js',
+                    './js/controllers/utente/factories/validationFactory.js',
+                    './js/controllers/dimensioni/services/dimensioniFactory.js',
+                    './js/controllers/moduloDati/services/moduloDati.factory.js',
+                    './js/controllers/moduloDati/services/modulo.factory.js',
+                    './js/controllers/utente/factories/utenteFactory.js'
+                  ])
+                }
+              ],
+              addPartTranslate: ['$translate', function($translate) {
+                $translatePartialLoaderProvider.addPart('registrazioneImpresa')
+                $translate.refresh()
+              }]
+            },
+            saveToHistory: false
+          })
+        .state(
+          'pcc.registrazioneImpresa.partecipaBando', {
+            url: '/registrazioneImpresa/partecipaBando',
+            params: {
+              data: null
+            },
+            templateUrl: './views/registrazioneImpresa/partecipaBando.html',
+            ncyBreadcrumb: {
+              label: 'Partecipa Bando',
+              parent: 'pcc.registrazioneImpresa'
+            },
+            onEnter: function() {
+              document.title = 'Partecipa Bando';
+            },
+            controller: 'partecipaBandoController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad', '$translate',
+                function($ocLazyLoad, $translate) {
+                  $translatePartialLoaderProvider.addPart('registrazioneImpresa')
+                  $translate.refresh()
+                  return $ocLazyLoad
+                    .load([
+                      './js/controllers/registrazioneImpresa/services/alberoCategorie.factory.js',
+                      './js/controllers/moduloDati/services/moduloDati.factory.js',
+                      './js/controllers/moduloDati/services/modulo.factory.js',
+                      './js/controllers/registrazioneImpresa/partecipaBandoController.js'
+                    ]);
+                }
+              ]
+            }
+          })
+        .state(
+          'pcc.registrazioneImpresa.modificaDatiImpresa', {
+            url: '/registrazioneImpresa/modificaDatiImpresa',
+            params: {
+              data: null,
+              code: 'UTE'
+            },
+            templateUrl: './views/registrazioneImpresa/modificaDatiImpresa.html',
+            ncyBreadcrumb: {
+              label: 'Richiesta',
+              parent: 'pcc.registrazioneImpresa'
+            },
+            onEnter: function() {
+              document.title = 'Dati impresa';
+            },
+            controller: 'modificaDatiImpresaController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad', '$translate',
+                function($ocLazyLoad, $translate) {
+                  $translatePartialLoaderProvider.addPart('registrazioneImpresa')
+                  $translate.refresh()
+                  return $ocLazyLoad
+                    .load('./js/controllers/registrazioneImpresa/modificaDatiImpresaController.js');
+                }
+              ]
+            }
+          })
+        .state(
+          'pcc.registrazioneImpresa.storicoAbilitazioni', {
+            url: '/registrazioneImpresa/storicoAbilitazioni',
+            params: {},
+            templateUrl: './views/registrazioneImpresa/storicoAbilitazioni.html',
+            ncyBreadcrumb: {
+              label: 'Storico Abilitazioni',
+              parent: 'pcc.registrazioneImpresa'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Storico Abilitazioni';
+            },
+            controller: 'storicoAbilitazioniController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/registrazioneImpresa/storicoAbilitazioniController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.registrazioneImpresa.richiesteStoricoAbilitazioni', {
+            url: '/registrazioneImpresa/richiesteStoricoAbilitazioni',
+            params: {},
+            templateUrl: './views/registrazioneImpresa/richiesteStoricoAbilitazioni.html',
+            ncyBreadcrumb: {
+              label: 'Richieste Storico Abilitazioni',
+              parent: 'pcc.registrazioneImpresa'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Richieste Storico Abilitazioni';
+            },
+            controller: 'richiesteStoricoAbilitazioniController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/registrazioneImpresa/richiesteStoricoAbilitazioniController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.registrazioneImpresa.storicoAbilitazioniLR', {
+            url: '/registrazioneImpresa/storicoAbilitazioniLR',
+            params: {},
+            templateUrl: './views/registrazioneImpresa/storicoAbilitazioniLR.html',
+            ncyBreadcrumb: {
+              label: 'Storico Abilitazioni LR',
+              parent: 'pcc.registrazioneImpresa'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Storico Abilitazioni LR';
+            },
+            controller: 'storicoAbilitazioniLRController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/registrazioneImpresa/storicoAbilitazioniLRController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.registrazioneImpresa.storicoImpresa', {
+            url: '/registrazioneImpresa/storicoImpresa',
+            params: {},
+            templateUrl: './views/registrazioneImpresa/storicoImpresa.html',
+            ncyBreadcrumb: {
+              label: 'Storico registrazioneImpresa',
+              parent: 'pcc.registrazioneImpresa'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Storico Impresa';
+            },
+            controller: 'storicoImpresaController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/registrazioneImpresa/storicoImpresaController.js',
+                      './js/controllers/impresa/impresaServices.js'
+                    );
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.registrazioneImpresa.subentroLR', {
+            url: '/registrazioneImpresa/subentroLR',
+            params: {
+              data: null,
+              code: null
+            },
+            templateUrl: './views/registrazioneImpresa/subentroLR.html',
+            ncyBreadcrumb: {
+              label: 'Subentro LR',
+              parent: 'pcc.registrazioneImpresa'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Subentro LR';
+            },
+            controller: 'subentroLRController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/registrazioneImpresa/subentroLRController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.registrazioneImpresa.collaboratori', {
+            url: '/registrazioneImpresa/collaboratori',
+            params: {
+              data: null
+            },
+            templateUrl: './views/registrazioneImpresa/collaboratori.html',
+            ncyBreadcrumb: {
+              label: 'Collaboratori',
+              parent: 'pcc.registrazioneImpresa'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Collaboratori';
+            },
+            controller: 'collaboratoriController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad', '$translate',
+                function($ocLazyLoad, $translate) {
+                  $translatePartialLoaderProvider.addPart('registrazioneImpresa')
+                  $translate.refresh()
+                  return $ocLazyLoad
+                    .load('./js/controllers/registrazioneImpresa/collaboratoriController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.registrazioneImpresa.nomina', {
+            url: '/registrazioneImpresa/nomina',
+            params: {
+              data: null
+            },
+            templateUrl: './views/registrazioneImpresa/nomina.html',
+            ncyBreadcrumb: {
+              label: 'Nomina LR',
+              parent: 'pcc.registrazioneImpresa'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Nomina';
+            },
+            controller: 'nominaController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad', '$translate',
+                function($ocLazyLoad, $translate) {
+                  $translatePartialLoaderProvider.addPart('registrazioneImpresa')
+                  $translate.refresh()
+                  return $ocLazyLoad
+                    .load('./js/controllers/registrazioneImpresa/nominaController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.registrazioneImpresa.rCollaborazione', {
+            url: '/registrazioneImpresa/rCollaborazione',
+            params: {
+              data: null
+            },
+            templateUrl: './views/registrazioneImpresa/rCollaborazione.html',
+            ncyBreadcrumb: {
+              label: 'Richieste Collaborazione LR',
+              parent: 'pcc.registrazioneImpresa'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Nomina';
+            },
+            controller: 'rCollaborazioneController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/registrazioneImpresa/rCollaborazioneController.js');
+                }
+              ]
+            },
+          })
+        .state(
+          'pcc.registrazioneImpresa.nuovoLR', {
+            url: '/registrazioneImpresa/nuovoLR',
+            params: {
+              data: null
+            },
+            templateUrl: './views/registrazioneImpresa/nuovoLR.html',
+            ncyBreadcrumb: {
+              label: 'Nuovo LR',
+              parent: 'pcc.registrazioneImpresa'
+            },
+            onEnter: function() {
+              document.title = 'Eproc2 - Nuovo LR';
+            },
+            controller: 'nuovoLRController',
+            resolve: {
+              loadMyCtrl: [
+                '$ocLazyLoad',
+                function($ocLazyLoad) {
+                  return $ocLazyLoad
+                    .load('./js/controllers/registrazioneImpresa/nuovoLRController.js',
+                      './js/controllers/utente/factories/utenteFactory.js');
+                }
+              ]
+            },
+          })
+
+      // ############# FINE REGISTRAZIONE IMPRESA ##############
+
+    }).run(
+    function($rootScope, $state, $breadcrumb, $transitions,
+      backHistory, $uibModalStack) {
+
+      $rootScope.isActive = function(stateName) {
+        return $state.includes(stateName);
+      }
+
+      $transitions.onStart({},
+        function(trans) {
+          $uibModalStack.dismissAll();
+          // $('body').removeClass('modal-open');
+          // $('.modal-backdrop').remove();
+          if ($state.current.saveToHistory != undefined &&
+            $state.current.saveToHistory &&
+            backHistory.saveEnabled()) {
+            // if (trans.from().name != trans.to().name) {
+            if (backHistory.getLastElement().stateName != trans.from().name) {
+              backHistory.save(trans.from().name, trans.params());
+            }
+            // }
+          }
+          if (backHistory.getLastElement().stateName == trans.to().name) {
+            backHistory.popBackHistory();
+          }
+          backHistory.setSave(true);
+        });
+
+    });

@@ -1,0 +1,247 @@
+<div class="row" ng-if="box.requisito.cdTipoRequisito == 'TITOLO' || box.requisito.reqTipoOggetto.fgRegolaValidazione == 'N' || (box.requisito.reqTipoOggetto.fgRegolaValidazione == 'S' && box.requisito.reqTipoOggetto.fgAltroValore == 'N' && box.requisito.reqTipoOggetto.tipoOggetto.fgAltroValore == 'S')">
+  <div class="col-sm-12">
+
+    <div class="mdl-box-section">
+      <div class="row" style="margin-top:1.5%">
+        <div class="col-sm-12">
+          <span class="font-titolo-small-bold" translate>NOT_SETTABLE</span>
+        </div>
+      </div>
+      <div class="row" ng-if="box.requisito.reqTipoOggetto.fgAltroValore == 'S' || box.requisito.reqTipoOggetto.tipoOggetto.fgAltroValore == 'S'" style="margin-top:1.5%">
+        <div class="col-sm-12">
+          <span class="font-default-bold"><span translate>MSG_1</span> <span ng-if="box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == 'CHECK_BOX' || box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == 'RADIO_BUTTON' || box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == 'LIST_ITEM'">
+              <span translate>MSG_2</span></span> <span translate>MSG_3</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row" id="regolePageStart" ng-if="(box.requisito.reqTipoOggetto.fgRegolaValidazione == 'S' && box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto=='TESTO_LIBERO') || (box.requisito.reqTipoOggetto.fgRegolaValidazione == 'S' && box.requisito.reqTipoOggetto.fgAltroValore == 'S')">
+  <div class="col-sm-12">
+
+    <div class="mdl-box-section">
+
+      <div class="row" style="margin-top:1%">
+        <div class="col-sm-2 col-sm-offset-10">
+          <button class="btn btn-primario" style="width: 100%;" ng-click="regola.showAdd = true" title="Messaggio temporaneo" ng-disabled="!box.requisito.reqTipoOggetto.fgRegolaValidazione || box.requisito.reqTipoOggetto.fgRegolaValidazione == 'N'">
+            <span translate>NEW_RULE_BTN</span>
+          </button>
+        </div>
+      </div>
+      <form name="valDirForm" novalidate>
+
+        <div class="mdl-box-subsection" style="padding-left: 25px;padding-right: 25px;padding-bottom: 25px;" ng-show="regola.showAdd" ng-disabled="box.requisito.reqTipoOggetto.fgRegolaValidazione == 'N'" ng-class="{'hideSeleziona':box.requisito.reqTipoOggetto.fgRegolaValidazione == 'N'}">
+
+          <div class="row" style="margin-top:1.5%">
+            <div class="col-sm-11">
+              <span class="font-titolo-small-bold" translate>NEW_VAL_DIR</span>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:1.5%">
+            <div class="col-sm-12">
+
+              <div class="row" style="margin-top:1%">
+                <div class="col-sm-12">
+                  <label for="regola-validazione-regolaValidazione"><span translate>RULE</span>*</label>
+                  <select id="regola-validazione-regolaValidazione" style="cursor: pointer" name="regola-validazione-regolaValidazione" class="form-control" ng-model="regola.referenceRequisito.regolaValidazione" ng-options="regolaValidazione as regolaValidazione.dsRegolaValidazione for regolaValidazione in box.listRegolaValidazione track by regolaValidazione.cdRegolaValidazione | filter: filtraListRegolaValidazione()"
+                    title="Messaggio temporaneo" ng-disabled="regola.referenceRequisito.idReference" ng-focus="regola.error=0" ng-class="{'errorFormField':regola.error==3 && !regola.referenceRequisito.regolaValidazione}">
+                    <option value="" disabled>Nessuna</option>
+                  </select>
+                </div>
+              </div>
+
+
+              <div class="row" style="margin-top:1.5%">
+                <div class="col-sm-12">
+
+                  <div class="row" style="margin-top:1%" ng-if="(regola.referenceRequisito.regolaValidazione.cdRegolaValidazione != 'RANGE' && (box.requisito.reqTipoOggetto.cdTipoFormato == box.tipiFormato.ALFANUMERICO.valore)) && regola.referenceRequisito.regolaValidazione.cdRegolaValidazione != 'NUMERO_MIN_CARATTERI' && regola.referenceRequisito.regolaValidazione.cdRegolaValidazione != 'NUMERO_MAX_CARATTERI'">
+                    <div class="col-sm-12">
+                      <label for="regola-validazione-dsCondizione"><span translate>VALUES</span>*</label>
+                      <input id="regola-validazione-dsCondizione" name="regola-validazione-dsCondizione" ng-disabled="!regola.referenceRequisito.regolaValidazione" autocomplete="off" type="text" class="form-control" maxlength="300" ng-model="regola.referenceRequisito.dsCondizione"
+                        ng-focus="regola.error=0" ng-class="{'errorFormField':regola.error==3 && !regola.referenceRequisito.dsCondizione}" />
+                    </div>
+                  </div>
+
+                  <div class="row" style="margin-top:1%" ng-if="(regola.referenceRequisito.regolaValidazione.cdRegolaValidazione != 'RANGE' && (box.requisito.reqTipoOggetto.cdTipoFormato == box.tipiFormato.NUMERICO.valore)) || regola.referenceRequisito.regolaValidazione.cdRegolaValidazione == 'NUMERO_MIN_CARATTERI' || regola.referenceRequisito.regolaValidazione.cdRegolaValidazione == 'NUMERO_MAX_CARATTERI'">
+                    <div class="col-sm-12">
+                      <label for="regola-validazione-dsCondizione"><span translate>VALUES</span>*</label>
+                      <input id="regola-validazione-dsCondizione" ng-pattern="/^[0-9]+$/" ng-disabled="!regola.referenceRequisito.regolaValidazione" name="regValDirNum" type="text" autocomplete="off" class="form-control" maxlength="300" ng-model="regola.referenceRequisito.dsCondizione"
+                        ng-focus="regola.error=0" ng-class="{'errorFormField':(regola.error == 3 && !regola.referenceRequisito.dsCondizione) || valDirForm.regValDirNum.$error.pattern}" />
+                    </div>
+                    <span class="font-default errore" ng-show="valDirForm.regValDirNum.$error.pattern" style="margin-left: 1.5%"><span translate>INVALID_FORMAT</span></span>
+                  </div>
+
+                  <div class="row" style="margin-top:1%" ng-if="regola.referenceRequisito.regolaValidazione.cdRegolaValidazione != 'RANGE' && (box.requisito.reqTipoOggetto.cdTipoFormato == box.tipiFormato.DATA.valore)">
+                    <div class="col-sm-6">
+                      <label for="regola-validazione-dsCondizione"><span translate>VALUES</span>*</label>
+                      <div class="input-group">
+                        <input id="regola-validazione-dsCondizione" ng-disabled="!regola.referenceRequisito.regolaValidazione" name="regValDsCondizione" type="text" class="form-control" placeholder="dd/MM/yyyy" close-text="CHIUDI" current-text="OGGI"
+                          clear-text="RESETTA" datepicker-options="dateOptions" is-open="opened" uib-datepicker-popup="{{formatDate}}" autocomplete="off" ng-model="regola.referenceRequisito.dsCondizione" ng-focus="regola.error=0" ng-class="{'errorFormField': regola.error==3 || (valDirForm.regValDsCondizione.$invalid && !valDirForm.regValDsCondizione.$pristine && !valDirForm.regValDsCondizione.$error.required)}"
+                          restrict-to="[0-9/]" ng-pattern="/[$|^\\d{1,2}\\/\\d{1,2}\\/\\d{4} \\d{1,2}:\\d{1,2}]*$/" ng-model-options="{updateOn: 'blur'}" required>
+                        <div class="input-group-btn">
+                          <button type="button" class="btn btn-primario" ng-click="opened=!opened" title="Messaggio temporaneo" style="height: 43px"><span class="glyphicon glyphicon-calendar"></span></button>
+                        </div>
+                      </div>
+                      <span class="font-default errore" ng-show="valDirForm.regValDsCondizione.$invalid && !valDirForm.regValDsCondizione.$pristine && !valDirForm.regValDsCondizione.$error.required"><span translate>INVALID_FORMAT</span> </span>
+
+                    </div>
+                  </div>
+
+                  <div class="row" style="margin-top:1%" ng-if="regola.referenceRequisito.regolaValidazione.cdRegolaValidazione == 'RANGE' && (box.requisito.reqTipoOggetto.cdTipoFormato == box.tipiFormato.NUMERICO.valore)">
+                    <div class="col-sm-3">
+                      <label for="regola-validazione-range-from"><span translate>FROM</span>*</label>
+                      <input id="regola-validazione-range-from" autocomplete="off" name="regola-validazione-dsCondizione" pattern="^[+-]?[0-9.,]+$|^$" type="text" class="form-control" maxlength="300" placeholder="Da..." ng-model="regola.referenceRequisito.rangeFrom"
+                        ng-change="setRangeRegolaValidazione()" ng-focus="regola.error=0" ng-class="{'errorFormField':regola.error == 3 || regola.error == 6}" />
+                    </div>
+                    <div class="col-sm-3 col-sm-offset-1">
+                      <label for="regola-validazione-range-to"><span translate>TO</span>*</label>
+                      <input id="regola-validazione-range-to" autocomplete="off" name="regola-validazione-range-to" pattern="^[+-]?[0-9.,]+$|^$" type="text" class="form-control" maxlength="300" placeholder="...A" ng-model="regola.referenceRequisito.rangeTo"
+                        ng-change="setRangeRegolaValidazione()" ng-focus="regola.error=0" ng-class="{'errorFormField':regola.error == 3 || regola.error == 6}" />
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-12">
+                      <span class="font-default errore" ng-show="regola.error ==6"><span translate>ERROR_RANGE_MSG</span></span>
+                    </div>
+                  </div>
+
+                  <div class="row" style="margin-top:1%" ng-if="regola.referenceRequisito.regolaValidazione.cdRegolaValidazione == 'RANGE'  && (box.requisito.reqTipoOggetto.cdTipoFormato == box.tipiFormato.DATA.valore)">
+
+                    <div class="col-sm-3">
+                      <label for="regola-validazione-range-from"><span translate>FROM</span>*</label>
+                      <div class="input-group">
+                        <input id="regola-validazione-range-from" name="regValDsCondizioneDa" type="text" class="form-control" maxlength="300" placeholder="Da..." ng-model="regola.referenceRequisito.rangeFrom" ng-change="setRangeRegolaValidazione()"
+                          close-text="CHIUDI" current-text="OGGI" clear-text="RESETTA" datepicker-options="dateOptions" is-open="openedFrom" uib-datepicker-popup="{{formatDate}}" ng-model="regola.referenceRequisito.dsCondizione" ng-focus="regola.error=0"
+                          ng-class="{'errorFormField': errore.valoreAmmesso == 1 || regola.error==3 || regValDsCondizioneDa || valDirForm.regValDsCondizioneDa.$invalid}" restrict-to="[0-9/]" ng-pattern="/[$|^\\d{1,2}\\/\\d{1,2}\\/\\d{4} \\d{1,2}:\\d{1,2}]*$/" ng-model-options="{updateOn: 'blur'}" />
+                        <div class="input-group-btn">
+                          <button type="button" class="btn btn-primario" ng-click="openedFrom=!openedFrom" title="Messaggio temporaneo" style="height: 43px"><span class="glyphicon glyphicon-calendar"></span></button>
+                        </div>
+                      </div>
+                      <span class="font-default errore" ng-show="valDirForm.regValDsCondizioneDa.$invalid"><span translate>INVALID_FORMAT</span></span>
+                    </div>
+                    <div class="col-sm-3 col-sm-offset-1">
+                      <label for="regola-validazione-range-to"><span translate>TO</span>*</label>
+                      <div class="input-group">
+                        <input id="regola-validazione-range-to" name="regValDsCondizioneA" autocomplete="off" type="text" class="form-control" maxlength="300" placeholder="...A" ng-model="regola.referenceRequisito.rangeTo" ng-change="setRangeRegolaValidazione()"
+                          close-text="CHIUDI" current-text="OGGI" clear-text="RESETTA" datepicker-options="dateOptions" is-open="openedTo" uib-datepicker-popup="{{formatDate}}" ng-model="regola.referenceRequisito.dsCondizione" ng-focus="regola.error=0"
+                          ng-class="{'errorFormField': errore.valoreAmmesso == 1 || regola.error==3 || regValDsCondizioneA || valDirForm.regValDsCondizioneA.$invalid}" restrict-to="[0-9/]" ng-pattern="/[$|^\\d{1,2}\\/\\d{1,2}\\/\\d{4} \\d{1,2}:\\d{1,2}]*$/" ng-model-options="{updateOn: 'blur'}" />
+                        <div class="input-group-btn">
+                          <button type="button" class="btn btn-primario" ng-click="openedTo=!openedTo" title="Messaggio temporaneo" style="height: 43px"><span class="glyphicon glyphicon-calendar"></span></button>
+                        </div>
+                      </div>
+                      <span class="font-default errore" ng-show="valDirForm.regValDsCondizioneA.$invalid"><span translate>INVALID_FORMAT</span></span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:1%">
+                <div class="col-sm-12">
+                  <label for="regola-validazione-dsMessaggioErrore"><span translate>ERR_MSG</span></label>
+                  <textarea id="regola-validazione-dsMessaggioErrore" name="regola-validazione-dsMessaggioErrore" type="text" class="form-control" maxlength="4000" style="resize:none" rows="5" ng-model="regola.referenceRequisito.dsMessaggioErrore"></textarea>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="row" style="margin-top:1.5%">
+            <div class="col-sm-6">
+              <span class="font-default-bold ute-ok" ng-if="regola.validaBtnBg==1"><span translate>OK_RULE</span></span>
+              <span class="font-default-bold errore" ng-if="regola.error==2"><span translate>OPENED_MODIFICATION</span></span>
+              <span class="font-default-bold errore" ng-if="regola.error==3"><span translate>REQUIRED_FIELDS</span></span>
+            </div>
+            <div class="col-sm-2 col-sm-offset-2">
+              <button class="btn btn-primario" style="width: 100%;" ng-click="annullaRegola()" title="Messaggio temporaneo">
+                <span translate>CANCEL</span>
+              </button>
+            </div>
+
+            <div class="col-sm-2">
+              <button class="btn btn-primario" type="submit" style="width: 100%;" ng-click="salvaRegola()" title="Messaggio temporaneo">
+                <span translate>SAVE</span>
+              </button>
+            </div>
+
+            <div class="row" style="margin-top:5%">
+              <div class="col-sm-12">
+                <span class="font-small-bold" translate>INS_REQUIRED_FIELD</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </form>
+
+    </div>
+
+    <div class="mdl-box-section">
+
+      <div class="row" style="margin-top:1.5%">
+        <div class="col-sm-12">
+          <span class="font-titolo-small-bold" translate>RULES_LIST</span>
+        </div>
+      </div>
+
+      <div class="mdl-box-subsection">
+
+        <div class="row" style="margin-top:1.5%" ng-if="box.listReferenceRequisito.length == 0">
+          <div class="col-sm-12">
+            <span class="font-default" translate>NO_RULES</span>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:1.5%" ng-if="box.listReferenceRequisito.length > 0">
+          <div class="col-sm-12">
+
+            <div class="row" style="margin-bottom:1.5%">
+              <div class="col-sm-1">
+                <span class="font-default-bold">N&ordm;</span>
+              </div>
+              <div class="col-sm-4">
+                <span class="font-default-bold" translate>CONDITION</span>
+              </div>
+              <div class="col-sm-3">
+                <span class="font-default-bold" translate>VALIDATION</span>
+              </div>
+              <div class="col-sm-4" align="center">
+                <span class="font-default-bold" translate>ACTIONS</span>
+              </div>
+            </div>
+
+            <div class="row" ng-repeat="referenceRequisito in box.listReferenceRequisito track by $index" ng-class-odd="'ute-table-row-grey'">
+              <div class="col-sm-1">
+                <span class="font-default-bold">{{$index + 1}}</span>
+              </div>
+
+              <div class="col-sm-4 ute-cut-text" title="{{referenceRequisito.dsCondizione}}">
+                <span class="font-default">{{referenceRequisito.dsCondizione}}</span>
+              </div>
+              <div class="col-sm-3">
+                <span class="font-default">{{referenceRequisito.regolaValidazione.dsRegolaValidazione}}</span>
+              </div>
+              <div class="col-sm-2" style="text-align:center">
+                <button type="button" class="mdl-hidden-btn" ng-click="modificaReferenceRequisito(referenceRequisito)" title="Messaggio temporaneo">
+                  <span class="glyphicon glyphicon-edit"></span>&nbsp;<span class="cursor" translate>MODIFY</span>
+                </button>
+              </div>
+              <div class="col-sm-2" style="text-align:center">
+                <button type="button" class="mdl-hidden-btn" ng-click="eliminaReferenceRequisito(referenceRequisito)" title="Messaggio temporaneo">
+                  <span class="glyphicon glyphicon-trash"></span>&nbsp;<span class="cursor" translate>DELETE</span>
+                </button>
+              </div>
+            </div>
+            <div class="row" style="margin-top:2.5%">
+              <div class="col-sm-12" align="center" style="width:93%">
+                <span class="font-default-bold" translate>FIND_RULE</span><span class="font-default-bold"> - </span><span class="font-default-bold"> {{box.listReferenceRequisito.length}} </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

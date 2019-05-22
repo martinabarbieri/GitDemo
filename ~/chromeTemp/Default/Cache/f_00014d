@@ -1,0 +1,1080 @@
+angular.module("eprocApp").controller('requisitoController', ['$scope', '$filter', '$state', '$q', '$translate', '$window', '$uibModal', 'codService', 'moduloDatiService', 'EprocAAW', 'EprocAAW', function($scope, $filter, $state, $q, $translate, $window, $uibModal, codService, moduloDatiService, EprocAAW, EprocAAW) {
+
+  $window.scrollTo(0, angular.element('requisitoStart'));
+
+  // SETUP VARIABILI
+  $scope.box = {
+    moduloDati: null,
+    sezione: null,
+    requisito: null,
+    mainFg: false,
+    listTipoRequisito: null,
+    listTipoFormato: null,
+    listTipoOggetto: null,
+    tipiDipendenza: null,
+    dsLabelRequisito: null,
+    cod: null,
+    listReferenceRequisito: [],
+    listRequisitiReferenziabili: [],
+    listRegolaValidazione: [],
+    listDocumenti: [],
+    inputValoreAmmesso: null,
+    listEtichette: [],
+    uploadFileForm: null
+  }
+
+  $scope.ckoptions = {
+    language: 'it',
+    removePlugins: "a11yhelp,about,bidi,blockquote,clipboard,button,panelbutton,panel,floatpanel,colorbutton,colordialog,menu,contextmenu,dialogadvtab,div,elementspath,enterkey,entities,popup,filebrowser,find,fakeobjects,flash,floatingspace,listblock,richcombo,font,format,forms,horizontalrule,htmlwriter,iframe,image,indent,indentblock, indentlist, justify,link,list,liststyle,magicline,maximize,paragraph,newpage,pagebreak,pastefromword,pastetext,preview,print,redo,removeformat,resize,save,menubutton,scayt,selectall,showblocks,showborders,smiley,sourcearea,specialchar,stylescombo,tab,table,tabletools,templates,toolbar,undo,wsc,wysiwygarea ",
+    extraPlugins: 'wordcount,notification',
+    wordcount: {
+      showCharCount: true,
+      showWordCount: false,
+      maxCharCount: 30000
+    }
+  }
+
+  $scope.formatDate = 'dd/MM/yyyy'
+
+  $scope.regola = {
+    showAdd: false,
+    inputRequisito: "",
+    validaBtnBg: 0, // 0 NORMAL, -1 ERROR, 1 OK
+    seeListRequisiti: false,
+    inModifica: false,
+    referenceRequisito: {
+      idReference: null,
+      idRequisito: null,
+      cdTipoDipendenza: null,
+      regolaValidazione: null,
+      dsCondizione: "",
+      dsMessaggioErrore: null,
+      dsTesto: null,
+      listRegolaValore: [],
+      listDettaglioReference: []
+    },
+    regolaValore: {
+      idRegolaValore: null,
+      idReference: null,
+      valoreAmmesso: {
+        idValore: null,
+        dsValore: null,
+        idTipoOggetto: null,
+        idRequisito: null,
+        idRegolaValore: null
+      }
+    }
+  }
+
+  $scope.box.requisito = {
+    idRequisito: null,
+    idSezione: null,
+    idModuloDati: null,
+    cdCodificaReqFe: null,
+    dsLabelRequisito: null,
+    dsNoteCompilazione: null,
+    dsRequisito: null,
+    dsTestoOutputDom: null,
+    dsTestoOutputRisp: null,
+    fgConsultPa: 'N',
+    fgEditabile: 'N',
+    fgFinePagina: 'N',
+    fgModificaDiretta: 'N',
+    fgObbligatorio: 'N',
+    fgPercorsoNetto: 'N',
+    fgStampabile: 'S',
+    fgVisualizzazione: 'S',
+    fgRicercaRdo: 'N',
+    fgRinnovo: 'N',
+    idDocumento: null,
+    cdTipoRequisito: null,
+    pgOrdineVisualizzazione: null,
+    qtAnnoDurata: null,
+    qtGiornoDurata: null,
+    qtMeseDurata: null,
+    etichetta: null,
+    reqTipoOggetto: null,
+    idEntita: null,
+    cdEntita: null
+  }
+
+  const reqTipoOggetto = {
+    tipoOggetto: null,
+    idRequisito: null,
+    cdTipoFormato: null,
+    fgAltroValore: 'N',
+    fgRispostaMultipla: 'N',
+    fgRegolaValidazione: 'N',
+    fgRegolaCorrelata: 'N',
+    fgSelezioneMultipla: 'N',
+    listDocRichiesto: [],
+    listValoreAmmesso: []
+  }
+
+  $scope.formulaCondizioneBackup = null
+
+  $scope.tabs = {
+    DATI_PRINCIPALI: {
+      slug: 'datiPrincipali',
+      title: "Dati Principali",
+      template: "./views/moduloDati/templates/datiPrincipaliTemplate.html",
+      disable: false,
+      cod: null
+    },
+    VALIDAZIONE_DIRETTA: {
+      slug: 'regValDiretta',
+      title: "Val. Diretta",
+      template: "./views/moduloDati/templates/regole/regValDiretta.html",
+      disable: true,
+      cod: null
+    },
+    VALIDAZIONE_CORRELATA: {
+      slug: 'regValCorrelata',
+      title: "Val. Correlata",
+      template: "./views/moduloDati/templates/regole/regValCorrelata.html",
+      disable: true,
+      cod: null
+    },
+    VISIBILITA: {
+      slug: 'regVisibilita',
+      title: "Visibilità",
+      template: "./views/moduloDati/templates/regole/regVisibilita.html",
+      disable: true,
+      cod: null
+    },
+    STAMPABILITA: {
+      slug: 'regStampabilita',
+      title: "Stampabilità",
+      template: "./views/moduloDati/templates/regole/regStampabilita.html",
+      disable: true,
+      cod: null
+    }
+  }
+
+  $scope.errore = {
+    dsLabelRequisito: false,
+    dsRequisito: false,
+    cdTipoRequisito: false,
+    tipoOggetto: false,
+    cdTipoFormato: false,
+    valoreAmmesso: 0,
+    documento: 0
+  }
+
+  $scope.documentoFacSimile = {
+    idDocumento: null,
+    idRequisito: null,
+    idTipoOggetto: null,
+    nmDocumento: null,
+    fgFirmaObbligatoria: null,
+    fgInvioCongiunto: null,
+    nmNomefile: null,
+    cdTipologiaRichiesta: null,
+    cdTipoObbligatorieta: null,
+    cdTipoInvioRisposta: null,
+    idDocAllegato: null,
+    qtDimMaxFile: null,
+    dsFormatoFile: null,
+  }
+
+  $scope.fileToUpload = {
+    nomeDocumento: null,
+    file: null,
+    contentType: "application/pdf",
+    dimensioneFile: null,
+    funzionalita: "DOCUMENTO_FAC_SIMILE",
+    firmaRichiesta: "0",
+    hashDoc: null,
+    esitoHashBloccante: "0",
+    esitoMarcaTemporaleBloccante: "0",
+    esitoCrittografia: "0",
+    tyEntity: null,
+    marcaTemporaleRichiesta: "0",
+    tipoFirma: "0",
+    gestioneFirma: "0",
+    gestioneHandler: "0",
+    esitoFirmaBloccante: "0",
+    idRichiesta: null
+  }
+
+  // SETUP VARIABILI
+
+  // CONTROL VIEW
+
+  const alertError = function(message) {
+    EprocAAW.alertError(message)
+  }
+
+  $scope.addFacSimile = function(file) {
+    if ($scope.documentoFacSimile.idDocAllegato) {
+      moduloDatiService.fileDelete({
+        idDocumento: $scope.documentoFacSimile.idDocAllegato
+      }).then(function() {
+        $scope.documentoFacSimile.idDocAllegato = null
+      })
+    } else $scope.documentoFacSimile.idDocAllegato = null
+    $scope.documentoFacSimile.nmDocumento = file.filename
+    $scope.fileToUpload.nomeDocumento = file.filename
+    $scope.fileToUpload.file = file.base64
+    $scope.fileToUpload.dimensioneFile = file.filesize
+  }
+
+  $scope.tornaIndietro = function() {
+    $scope.$parent.goBack({
+      config: $scope.$parent.config,
+      moduloDati: $scope.box.moduloDati,
+      sezione: $scope.box.sezione
+    })
+  }
+
+  const openModal = function(template, controller, data) {
+    $scope.box.newMdlDatiModal = $uibModal.open({
+      animation: true,
+      ariaLabelledBy: 'modal-title',
+      ariaDescribedBy: 'modal-body',
+      templateUrl: template,
+      controller: controller,
+      scope: $scope,
+      backdrop: 'static',
+      size: 'md',
+      resolve: {
+        uibModalData: function() {
+          return data
+        }
+      }
+    })
+  }
+
+  const focusOnElement = function(element) {
+    $window.scrollTo(0, angular.element(element));
+  }
+
+  const formatDate = function(date) {
+    return $filter('date')(date, "dd/MM/yyyy")
+  }
+
+  const setRegTipoOggetto = function() {
+    if ($scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == "CHECK_BOX") {
+      $scope.box.requisito.reqTipoOggetto.fgSelezioneMultipla = 'S'
+    } else if ($scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == "LIST_ITEM") {
+      $scope.box.requisito.reqTipoOggetto.fgSelezioneMultipla = 'S'
+    } else if ($scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == "RADIO_BUTTON") {
+      $scope.box.requisito.reqTipoOggetto.fgSelezioneMultipla = 'S'
+    } else if ($scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == "UPLOAD_FILE") {
+      $scope.box.requisito.fgStampabile = 'N'
+    } else if ($scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == "FORMULA") {
+      moduloDatiService.getListRequisitoReferenziabileByIdSezione({
+        id: $scope.box.sezione.idSezione
+      }).then(function(response) {
+        $scope.box.listRequisitiReferenziabili = response.payload
+      })
+    }
+  }
+
+  $scope.resetTipoOggetto = function() {
+    $scope.box.requisito.reqTipoOggetto.cdTipoFormato = null
+    $scope.box.requisito.reqTipoOggetto.fgAltroValore = 'N'
+    $scope.box.requisito.reqTipoOggetto.fgRispostaMultipla = 'N'
+    $scope.box.requisito.reqTipoOggetto.fgRegolaValidazione = 'N'
+    $scope.box.requisito.reqTipoOggetto.fgRegolaCorrelata = 'N'
+    $scope.box.requisito.reqTipoOggetto.fgSelezioneMultipla = 'N'
+    if ($scope.box.requisito.reqTipoOggetto.tipoOggetto) setRegTipoOggetto()
+  }
+
+  $scope.resetTipoRequisito = function() {
+    if ($scope.box.requisito.cdTipoRequisito == $scope.box.tipiRequisito.TITOLO.valore) {
+      $scope.box.requisito.reqTipoOggetto = null
+    } else if ($scope.box.requisito.cdTipoRequisito == $scope.box.tipiRequisito.DOMANDA_SEMPLICE.valore) {
+      $scope.box.requisito.reqTipoOggetto = angular.copy(reqTipoOggetto)
+    }
+  }
+
+  // CONTROL VIEW
+
+  // GESTIONE REGOLE
+
+  const resetRegola = function(fgHide = true) {
+    $scope.regola.showAdd = false
+    $scope.regola.fgTestoOutput = fgHide ? false : true;
+    $scope.regola.fgTestoOutputChoose = 0 // 1 default, 2 regole
+    $scope.regola.validaBtnBg = 0
+    $scope.regola.inModifica = false
+    $scope.errorDsTestoOutputRisp = undefined
+    $scope.regola.referenceRequisito.rangeFrom = null
+    $scope.regola.referenceRequisito.rangeTo = null
+    $scope.regola.error = 0;
+    $scope.regola.success = 0;
+    $scope.regola.seeListRequisiti = false
+    $scope.errore.valoreAmmesso = 0
+    $scope.regola.referenceRequisito = angular.copy({
+      idReference: null,
+      idRequisito: $scope.box.requisito.idRequisito,
+      cdTipoDipendenza: $scope.box.cod.valore,
+      regolaValidazione: null,
+      dsCondizione: "",
+      dsMessaggioErrore: null,
+      dsTesto: null,
+      listRegolaValore: [],
+      listDettaglioReference: [],
+    })
+  }
+
+  const insertReferenceRequisito = function() {
+    if ($scope.box.requisito.reqTipoOggetto && $scope.box.requisito.reqTipoOggetto.cdTipoFormato == $scope.box.tipiFormato.DATA.valore) {
+      $scope.regola.referenceRequisito.dsCondizione = formatDate($scope.regola.referenceRequisito.dsCondizione)
+    }
+    moduloDatiService.insertReferenceRequisito($scope.regola.referenceRequisito).then(function(response) {
+      $scope.regola.validaBtnBg = 0
+      resetRegola()
+      $scope.getListReferenceRequisitoByIdRequisito()
+    }, function() {
+      $scope.regola.validaBtnBg = 0
+      $scope.error = true
+    })
+  }
+
+  const updateReferenceRequisito = function() {
+    moduloDatiService.updateReferenceRequisito($scope.regola.referenceRequisito).then(function(response) {
+      resetRegola()
+      $scope.getListReferenceRequisitoByIdRequisito()
+    }, function() {
+      $scope.error = true
+    })
+  }
+
+  const createListDettaglioReference = function() {
+    const array = $scope.regola.referenceRequisito.dsCondizione.split('$')
+    $scope.regola.referenceRequisito.listDettaglioReference = []
+    for (let i = 1; i < array.length; i += 2) {
+      let r = $filter('filter')($scope.box.listRequisitiReferenziabili, {
+        cdCodificaReqFe: array[i].toUpperCase()
+      }, true)[0]
+      if (r && $filter('filter')($scope.regola.referenceRequisito.listDettaglioReference, {
+          cdCodificaReqFe: r.cdCodificaReqFe
+        }, true).length == 0) {
+        $scope.regola.referenceRequisito.listDettaglioReference.push({
+          idDettaglio: null,
+          cdCodificaReqFe: r.cdCodificaReqFe,
+          idReference: null,
+          idRequisitoReferenziato: r.idRequisito,
+        })
+      } else if ($scope.regola.referenceRequisito.cdTipoDipendenza == 'TESTO_OUTPUT' && array[i].toUpperCase() == $scope.box.requisito.cdCodificaReqFe && $scope.box.requisito.reqTipoOggetto) {
+        $scope.regola.referenceRequisito.listDettaglioReference.push({
+          idDettaglio: null,
+          cdCodificaReqFe: $scope.box.requisito.cdCodificaReqFe,
+          idReference: null,
+          idRequisitoReferenziato: $scope.box.requisito.idRequisito,
+        })
+      }
+    }
+  }
+
+  const checkRegola = function() {
+    if ($scope.regola.referenceRequisito.regolaValidazione && $scope.regola.referenceRequisito.regolaValidazione.cdRegolaValidazione == 'RANGE' &&
+      (!$scope.regola.referenceRequisito.rangeFrom || !$scope.regola.referenceRequisito.rangeTo)) $scope.regola.error = 3 // campo obbligatorio
+    else if (!$scope.regola.referenceRequisito.dsCondizione) $scope.regola.error = 3 // campo obbligatorio
+    else if ($scope.regola.validaBtnBg != 1 && $scope.regola.referenceRequisito.cdTipoDipendenza != $scope.box.tipiDipendenza.VALIDAZIONE_DIRETTA.valore) $scope.regola.error = 1 // regola non validata
+    else if ($scope.regola.referenceRequisito.rangeFrom > $scope.regola.referenceRequisito.rangeTo) $scope.regola.error = 6
+    else if ($scope.regola.referenceRequisito.cdTipoDipendenza == $scope.box.tipiDipendenza.VALIDAZIONE_CORRELATA.valore && $scope.regola.referenceRequisito.listRegolaValore.length <= 0) $scope.regola.error = 7
+    else $scope.regola.error = 0
+    $scope.regola.validaBtnBg = 0;
+    return $scope.regola.error == 0 ? true : false
+  }
+
+  $scope.salvaTestoOutputDefault = function() {
+    if (!$scope.box.requisito.dsTestoOutputRisp) return $scope.errorDsTestoOutputRisp = -1
+    $scope.errorDsTestoOutputRisp = undefined
+    moduloDatiService.updateTestoOutputRispRequisito({
+      idRequisito: $scope.box.requisito.idRequisito,
+      dsTestoOutputRisp: $scope.box.requisito.dsTestoOutputRisp
+    }, false).then(function() {
+      $scope.errorDsTestoOutputRisp = 1;
+    }, function() {
+      $scope.errorDsTestoOutputRisp = 2
+    }, function(error) {
+      $scope.errorMsg = error;
+      $scope.errorDsTestoOutputRisp = 2
+    })
+  }
+
+  $scope.salvaRegola = function(cdTipoDipendenza = null) {
+    if (!checkRegola()) return
+    if ($scope.regola.referenceRequisito.cdTipoDipendenza != $scope.box.tipiDipendenza.VALIDAZIONE_DIRETTA.valore) {
+      if (cdTipoDipendenza) $scope.regola.referenceRequisito.cdTipoDipendenza = cdTipoDipendenza;
+      createListDettaglioReference()
+      if (!$scope.regola.referenceRequisito.idReference) insertReferenceRequisito()
+      else updateReferenceRequisito()
+    } else {
+      if (!$scope.regola.inModifica) insertReferenceRequisito()
+      else updateReferenceRequisito()
+    }
+  }
+
+  $scope.openGuidaRegolaModal = function() {
+    return $uibModal.open({
+      templateUrl: "./views/moduloDati/modals/guidaRegolaModal.html",
+      show: false,
+      backdrop: 'static',
+      keyboard: false,
+      controller: function($scope, $uibModalInstance) {
+        $scope.closeModal = function() {
+          $uibModalInstance.close(false);
+        }
+      }
+    })
+  }
+
+  const getRegolaValoreData = function() {
+    const regolaValore = angular.copy($scope.regola.regolaValore)
+    regolaValore.valoreAmmesso.idTipoOggetto = $scope.box.requisito.reqTipoOggetto.tipoOggetto.idTipoOggetto
+    regolaValore.valoreAmmesso.idRequisito = $scope.box.requisito.idRequisito
+    return regolaValore
+  }
+
+  const hasValoreAmmesso = function(valoreAmmesso) {
+    let c1 = true
+    let c2 = true
+    if ($filter('filter')($scope.box.requisito.reqTipoOggetto.listValoreAmmesso, function(item) {
+        return item.dsValore == valoreAmmesso
+      })[0]) c1 = false
+    if ($filter('filter')($scope.regola.referenceRequisito.listRegolaValore, function(item) {
+        return item.valoreAmmesso.dsValore == valoreAmmesso
+      })[0]) c2 = false
+    return c1 && c2
+  }
+
+  $scope.deleteValore = function(regolaValore) {
+    $scope.regola.referenceRequisito.listRegolaValore = $filter('filter')($scope.regola.referenceRequisito.listRegolaValore, function(item) {
+      return item.valoreAmmesso.dsValore != regolaValore.valoreAmmesso.dsValore
+    })
+  }
+
+  $scope.addValoreDisponibile = function(dsValore) {
+    if ($scope.box.requisito.reqTipoOggetto.cdTipoFormato == $scope.box.tipiFormato.DATA.valore) dsValore = formatDate(dsValore)
+    if ($filter('filter')($scope.regola.referenceRequisito.listRegolaValore, function(item) {
+        return item.valoreAmmesso.dsValore == dsValore.dsValore
+      })[0]) return $scope.regola.error = 5 //valore duplicato
+    else {
+      $scope.regola.error = 0;
+      $scope.regola.validaBtnBg = 0;
+      $scope.regola.referenceRequisito.listRegolaValore.push({
+        idRegolaValore: null,
+        idReference: null,
+        valoreAmmesso: {
+          idValore: dsValore.idValore,
+          dsValore: dsValore.dsValore,
+          idTipoOggetto: $scope.box.requisito.reqTipoOggetto.tipoOggetto.idTipoOggetto,
+          idRequisito: $scope.box.requisito.idRequisito,
+          idRegolaValore: null
+        }
+      })
+      $scope.regola.regolaValore.valoreAmmesso.dsValore = ""
+    }
+  }
+
+  $scope.aggiungiValore = function() {
+    if ($scope.box.requisito.reqTipoOggetto.cdTipoFormato == $scope.box.tipiFormato.DATA.valore) $scope.regola.regolaValore.valoreAmmesso.dsValore = formatDate($scope.regola.regolaValore.valoreAmmesso.dsValore)
+    if (!$scope.regola.regolaValore.valoreAmmesso.dsValore) return $scope.regola.error = 4; //valore errato o nullo
+    else if ($filter('filter')($scope.regola.referenceRequisito.listRegolaValore, function(item) {
+        return item.valoreAmmesso.dsValore == $scope.regola.regolaValore.valoreAmmesso.dsValore
+      })[0]) return $scope.regola.error = 5 //valore duplicato
+    else {
+      $scope.regola.error = 0;
+      $scope.regola.validaBtnBg = 0;
+      $scope.regola.referenceRequisito.listRegolaValore.push(getRegolaValoreData())
+      $scope.regola.regolaValore.valoreAmmesso.dsValore = ""
+    }
+  }
+
+  $scope.eliminaReferenceRequisito = function(reference) {
+    openModal("./views/moduloDati/modals/deleteReferenceRequisitoModal.html", "deleteReferenceRequisitoController", {
+      referenceRequisito: reference
+    })
+  }
+
+  $scope.modificaReferenceRequisito = function(reference) {
+    if ($scope.regola.inModifica) {
+      return $scope.regola.error = 2
+    }
+    $scope.regola.error = 0
+    $scope.regola.showAdd = reference.cdTipoDipendenza == "TESTO_OUTPUT" ? false : true;
+    $scope.regola.fgTestoOutput = reference.cdTipoDipendenza == "TESTO_OUTPUT" ? true : false;
+    $scope.regola.fgTestoOutputChoose = 2
+    $scope.regola.inModifica = true
+    $scope.regola.referenceRequisito = angular.copy(reference)
+    $scope.regola.referenceRequisito.rangeFrom = reference.dsCondizione.split(' ')[0]
+    $scope.regola.referenceRequisito.rangeTo = reference.dsCondizione.split(' ')[2]
+  }
+
+  $scope.annullaRegola = function() {
+    resetRegola()
+  }
+
+  $scope.chooseTestoOutputView = function(n) {
+    if (n == 1) resetRegola(false)
+    $scope.regola.fgTestoOutputChoose = n
+  }
+
+  const generateDataToValidate = function() {
+    const array = $scope.regola.referenceRequisito.dsCondizione.split('$')
+    const parametri = {};
+    for (let i = 1; i < array.length; i += 2) {
+      const r = $filter('filter')($scope.box.listRequisitiReferenziabili, {
+        cdCodificaReqFe: array[i].toUpperCase()
+      }, true)[0]
+      if (r && !parametri[r.cdCodificaReqFe]) {
+        parametri[r.cdCodificaReqFe] = r.cdTipoFormato == $scope.box.tipiFormato.NUMERICO.valore ? "N" : "T"
+      } else if ($scope.regola.referenceRequisito.cdTipoDipendenza == 'TESTO_OUTPUT' && array[i].toUpperCase() == $scope.box.requisito.cdCodificaReqFe && $scope.box.requisito.reqTipoOggetto) {
+        parametri[$scope.box.requisito.cdCodificaReqFe] = $scope.box.requisito.reqTipoOggetto.cdTipoFormato == $scope.box.tipiFormato.NUMERICO.valore ? "N" : "T"
+      }
+    }
+    return {
+      "formula": $scope.regola.referenceRequisito.dsCondizione.replace(/"/g, '\"'),
+      "listaParametri": parametri
+    }
+  }
+
+  $scope.validaRegola = function() {
+    if (!$scope.regola.referenceRequisito.dsCondizione) return $scope.regola.error = 3
+    $scope.regola.error = 0
+    $scope.validateMsg = undefined
+    moduloDatiService.validateFormula(generateDataToValidate(), false).then(function() {
+      $scope.regola.validaBtnBg = 1
+    }, function() {
+      $scope.regola.validaBtnBg = 1
+    }, function(response) {
+      $scope.validateMsg = response
+      $scope.regola.validaBtnBg = -1
+    });
+  }
+
+  $scope.setRangeRegolaValidazione = function() {
+    if ($scope.box.requisito.reqTipoOggetto.cdTipoFormato == $scope.box.tipiFormato.DATA.valore) {
+      $scope.regola.referenceRequisito.dsCondizione = formatDate($scope.regola.referenceRequisito.rangeFrom) + " - " + formatDate($scope.regola.referenceRequisito.rangeTo)
+    } else $scope.regola.referenceRequisito.dsCondizione = $scope.regola.referenceRequisito.rangeFrom + " - " + $scope.regola.referenceRequisito.rangeTo
+  }
+
+  $scope.filterListRequisitiReferenziabili = function() {
+    $scope.regola.validaBtnBg = 0
+    const array = $scope.regola.referenceRequisito.dsCondizione.split('$')
+    if (array.length % 2 == 0) {
+      $scope.regola.seeListRequisiti = true
+      $scope.regola.inputRequisito = array[array.length - 1]
+    } else $scope.regola.seeListRequisiti = false
+  }
+
+  $scope.aggiungiOperatore = function(op, desc, inputId) {
+    $scope.regola.referenceRequisito.dsCondizione += op;
+    $scope.regola.validaBtnBg = 0
+    $window.document.getElementById('regola-' + inputId + '-dsCondizione').focus();
+  }
+
+  $scope.addRequisitoReferenziato = function(requisito, inputId) {
+    const array = $scope.regola.referenceRequisito.dsCondizione.split('$');
+    let temp = $scope.regola.referenceRequisito.dsCondizione.substring(0, $scope.regola.referenceRequisito.dsCondizione.length - array[array.length - 1].length)
+    temp += requisito.cdCodificaReqFe + '$';
+    $scope.regola.referenceRequisito.dsCondizione = temp;
+    $window.document.getElementById('regola-' + inputId + '-dsCondizione').focus();
+    $scope.regola.seeListRequisiti = false
+  }
+
+  const getListRegolaValidazione = function() {
+    moduloDatiService.getListRegolaValidazione({}).then(function(response) {
+      $scope.box.listRegolaValidazione = response.payload
+      $scope.getListReferenceRequisitoByIdRequisito()
+    }, function() {
+      $scope.error = true
+    })
+  }
+
+  const testoOutputSpecialCase = function() {
+    moduloDatiService.getListReferenceRequisitoByIdRequisito({
+      idRequisito: $scope.box.requisito.idRequisito,
+      cdTipoDipendenza: 'TESTO_OUTPUT'
+    }).then(function(response) {
+      $scope.box.listReferenceRequisito = $scope.box.listReferenceRequisito.concat(response.payload)
+      $scope.tabs[$scope.box.cod.valore].count = " - (" + $scope.box.listReferenceRequisito.length + ")"
+    }, function() {
+      $scope.error = true
+    })
+  }
+
+  const checkGetListReferenceRequisitoByIdRequisitoSpecialCase = function(cdTipoDipendenza) {
+    if (cdTipoDipendenza == 'STAMPABILITA') testoOutputSpecialCase()
+  }
+
+  $scope.changeStampabilita = function() {
+    if ($scope.box.requisito.fgStampabile == 'N') $scope.box.requisito.idDocumento = null
+  }
+
+  $scope.getListReferenceRequisitoByIdRequisito = function() {
+    moduloDatiService.getListReferenceRequisitoByIdRequisito({
+      idRequisito: $scope.box.requisito.idRequisito,
+      cdTipoDipendenza: $scope.box.cod.valore
+    }).then(function(response) {
+      $scope.box.listReferenceRequisito = response.payload
+      $scope.tabs[$scope.box.cod.valore].count = " - (" + $scope.box.listReferenceRequisito.length + ")"
+      checkGetListReferenceRequisitoByIdRequisitoSpecialCase($scope.box.cod.valore);
+    }, function() {
+      $scope.error = true
+    })
+  }
+
+  $scope.filtraListRegolaValidazione = function() {
+    if (!$scope.box.requisito.reqTipoOggetto) return
+    if ($scope.box.requisito.reqTipoOggetto.cdTipoFormato == $scope.box.tipiFormato.ALFANUMERICO.valore) {
+      $scope.box.listRegolaValidazione = $filter('filter')($scope.box.listRegolaValidazione, function(item) {
+        return item.fgAlfanumerico == 'S'
+      })
+    } else if ($scope.box.requisito.reqTipoOggetto.cdTipoFormato == $scope.box.tipiFormato.NUMERICO.valore) {
+      $scope.box.listRegolaValidazione = $filter('filter')($scope.box.listRegolaValidazione, function(item) {
+        return item.fgNumerico == 'S'
+      })
+    } else if ($scope.box.requisito.reqTipoOggetto.cdTipoFormato == $scope.box.tipiFormato.DATA.valore) {
+      $scope.box.listRegolaValidazione = $filter('filter')($scope.box.listRegolaValidazione, function(item) {
+        return item.fgData == 'S'
+      })
+    }
+  }
+
+  $scope.selectTab = function(codTab, slug) {
+    if (slug == 'datiPrincipali') {
+      if ($scope.box.requisito.reqTipoOggetto && $scope.box.requisito.reqTipoOggetto.tipoOggetto && $scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == 'FORMULA') {
+        $scope.regola.referenceRequisito = $scope.box.requisito.listReferenceRequisito[0];
+      }
+      return;
+    }
+    $scope.box.cod = codTab
+    resetRegola()
+    if (codTab.valore == "VALIDAZIONE_DIRETTA" && (!$scope.box.listReferenceRequisito || $scope.box.listReferenceRequisito.length == 0)) getListRegolaValidazione()
+    else $scope.getListReferenceRequisitoByIdRequisito()
+  }
+
+  // GESTITONE REGOLE
+
+  // GESTIONE REQUISITO
+
+  $scope.insertVariabileTestoOutputRisp = function(testoRisp) {
+    if (!$scope.box.requisito.dsTestoOutputRisp) $scope.box.requisito.dsTestoOutputRisp = '$' + testoRisp + '$'
+    else $scope.box.requisito.dsTestoOutputRisp = $scope.box.requisito.dsTestoOutputRisp.concat('$' + testoRisp + '$')
+  }
+
+  $scope.insertVariabileTestoOutputRispRegola = function(testoRisp) {
+    if (!$scope.regola.referenceRequisito.dsTesto) $scope.regola.referenceRequisito.dsTesto = '$' + testoRisp + '$'
+    else $scope.regola.referenceRequisito.dsTesto = $scope.regola.referenceRequisito.dsTesto.concat('$' + testoRisp + '$')
+  }
+
+  $scope.insertVariabileTestoOutputRispDefault = function(testoRisp) {
+    if (!$scope.box.requisito.dsTestoOutputRisp) $scope.box.requisito.dsTestoOutputRisp = '$' + testoRisp + '$'
+    else $scope.box.requisito.dsTestoOutputRisp = $scope.box.requisito.dsTestoOutputRisp.concat('$' + testoRisp + '$')
+  }
+
+  $scope.selezioneDocumento = function($model) {
+    $scope.box.documentoSelezionato = $model.nome
+    $scope.box.requisito.idDocumento = $model.id
+  }
+
+  $scope.eliminaValoreAmmesso = function(valoreAmmesso) {
+    $scope.box.requisito.reqTipoOggetto.listValoreAmmesso = $filter('filter')($scope.box.requisito.reqTipoOggetto.listValoreAmmesso, function(item) {
+      return item.dsValore != valoreAmmesso.dsValore
+    })
+  }
+
+  $scope.valoriAmmessoListBackup = []
+
+  $scope.aggiungiValoreAmmesso = function() {
+    if ($scope.box.inputValoreAmmesso === undefined) return $scope.errore.valoreAmmesso = 3
+    if ($scope.box.inputValoreAmmesso === null) return $scope.errore.valoreAmmesso = 1
+    if ($scope.box.requisito.reqTipoOggetto.cdTipoFormato == $scope.box.tipiFormato.DATA.valore) {
+      $scope.box.backupValoreAmmesso = $scope.box.inputValoreAmmesso
+      $scope.box.inputValoreAmmesso = formatDate($scope.box.inputValoreAmmesso)
+    }
+    if (!hasValoreAmmesso($scope.box.inputValoreAmmesso)) return $scope.errore.valoreAmmesso = 2
+    else {
+      $scope.valoriAmmessoListBackup.push({
+        idValore: null,
+        dsValore: angular.copy($scope.box.backupValoreAmmesso),
+        idTipoOggetto: null,
+        idRequisito: null,
+        idRegolaValore: null
+      })
+
+      $scope.box.requisito.reqTipoOggetto.listValoreAmmesso.push({
+        idValore: null,
+        dsValore: angular.copy($scope.box.inputValoreAmmesso),
+        idTipoOggetto: null,
+        idRequisito: null,
+        idRegolaValore: null
+      })
+      $scope.box.inputValoreAmmesso = null
+    }
+  }
+
+  const insertRequisito = function() {
+    moduloDatiService.insertRequisito($scope.box.requisito, false).then(function(response) {
+      $scope.box.requisito = response.payload
+      $scope.box.mainFg = true
+      $scope.box.dsLabelRequisito = angular.copy($scope.box.requisito.dsLabelRequisito)
+      $scope.$emit('insertRequisito', true)
+      moduloDatiService.alertSuccess($translate.instant("SUCCESS")).closed.then(function() {
+        $window.scrollTo(0, angular.element('requisitoStart'))
+      })
+    }, function() {
+      $scope.error = true
+    })
+  }
+
+  const insertRequisitoUpload = function() {
+    moduloDatiService.fileUpload($scope.fileToUpload).then(function(response) {
+      $scope.documentoFacSimile.idDocAllegato = response.payload.idDocumento
+      $scope.box.requisito.reqTipoOggetto.listDocRichiesto.push(angular.copy($scope.documentoFacSimile))
+      insertRequisito()
+    }, alertError("ERRORE NON GESTITO - Salvataggio documento"), alertError(message))
+  }
+
+  const insertRequisitoFormula = function() {
+    createListDettaglioReference()
+    moduloDatiService.insertRequisitoFormula({
+      requisito: $scope.box.requisito,
+      reference: $scope.regola.referenceRequisito
+    }, false).then(function(response) {
+      $scope.formulaCondizioneBackup = angular.copy($scope.regola.referenceRequisito.dsCondizione)
+      $scope.box.requisito = response.payload
+      $scope.box.mainFg = true
+      $scope.box.dsLabelRequisito = angular.copy($scope.box.requisito.dsLabelRequisito)
+      $scope.$emit('insertRequisito', true)
+      moduloDatiService.alertSuccess($translate.instant("SUCCESS")).closed.then(function() {
+        $window.scrollTo(0, angular.element('requisitoStart'))
+      })
+    }, function() {
+      $scope.error = true
+    });
+  }
+
+  const updateRequisito = function() {
+    moduloDatiService.updateRequisito($scope.box.requisito, false).then(function(response) {
+      $scope.box.requisito.tsUltimaModifica = response.payload.tsUltimaModifica
+      $scope.box.requisito.nmUtenteUltimaModifica = response.payload.nmUtenteUltimaModifica
+      moduloDatiService.alertSuccess($translate.instant("SUCCESS")).closed.then(function() {
+        $window.scrollTo(0, angular.element('requisitoStart'))
+      })
+    }, function() {
+      $scope.error = true
+    })
+  }
+
+  const updateRequisitoUpload = function() {
+    if ($scope.documentoFacSimile.idDocAllegato) updateRequisito()
+    else {
+      moduloDatiService.fileUpload($scope.fileToUpload).then(function(response) {
+        $scope.box.requisito.reqTipoOggetto.listDocRichiesto = []
+        $scope.documentoFacSimile.idDocAllegato = response.payload.idDocumento
+        $scope.box.requisito.reqTipoOggetto.listDocRichiesto.push(angular.copy($scope.documentoFacSimile))
+        updateRequisito()
+      }, alertError("ERRORE NON GESTITO - Salvataggio documento"), alertError(message))
+    }
+  }
+
+  const updateRequisitoFormula = function() {
+    var requisito = angular.copy($scope.box.requisito);
+    let reference = $filter('filter')($scope.box.requisito.listReferenceRequisito, {
+      cdTipoDipendenza: 'FORMULA'
+    })[0]
+    if (!reference) return EprocAAW.alertError('Errore Formula non gestito!')
+    createListDettaglioReference()
+    moduloDatiService.updateRequisitoFormula({
+      requisito: requisito,
+      reference: reference
+    }, false).then(function(response) {
+      $scope.formulaCondizioneBackup = angular.copy($scope.regola.referenceRequisito.dsCondizione)
+      $scope.box.requisito.tsUltimaModifica = response.payload.tsUltimaModifica
+      $scope.box.requisito.nmUtenteUltimaModifica = response.payload.nmUtenteUltimaModifica
+      moduloDatiService.alertSuccess($translate.instant("SUCCESS")).closed.then(function() {
+        $window.scrollTo(0, angular.element('requisitoStart'))
+      })
+    }, function() {
+      $scope.error = true
+    });
+  }
+
+  const controlloCampiReqTipoOggetto = function(check) {
+    if (!$scope.box.requisito.reqTipoOggetto.tipoOggetto) {
+      $scope.errore.tipoOggetto = true
+      if (check) focusOnElement('reqTipoOggetto-tipoOggetto')
+      check = false
+    } else if ($scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == 'UPLOAD_FILE' && $scope.box.uploadFileForm.$invalid) {
+      $scope.errore.fileUpload = true
+      check = false
+    } else if ($scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == 'FORMULA') {
+      if ($scope.formulaCondizioneBackup == $scope.regola.referenceRequisito.dsCondizione) {
+        $scope.regola.validaBtnBg = 1
+      } else if (!$scope.regola.referenceRequisito.dsCondizione) {
+        check = false
+        $scope.regola.error = 3
+      } else if ($scope.regola.validaBtnBg != 1) {
+        check = false
+        $scope.regola.error = 1
+      }
+    } else {
+      $scope.errore.tipoOggetto = false
+      if ($scope.box.requisito.reqTipoOggetto.tipoOggetto.fgFormatoTesto == 'S' && !$scope.box.requisito.reqTipoOggetto.cdTipoFormato) {
+        $scope.errore.cdTipoFormato = true
+        if (check) focusOnElement('reqTipoOggetto-cdTipoFormato')
+        check = false
+      } else $scope.errore.cdTipoFormato = false
+    }
+    return check
+  }
+
+  const controlloCampiRequisito = function() {
+    let check = true
+    for (const c of ['dsLabelRequisito', 'dsRequisito', 'cdTipoRequisito']) {
+      if (!$scope.box.requisito[c]) {
+        $scope.errore[c] = true
+        if (check) focusOnElement('requisito-' + c)
+        check = false
+      } else $scope.errore[c] = false
+    }
+    $scope.errore.valoreAmmesso = 0
+    if (($scope.box.requisito.reqTipoOggetto && $scope.box.requisito.reqTipoOggetto.tipoOggetto.fgSelezioneMultipla == 'S' && $scope.box.requisito.reqTipoOggetto.listValoreAmmesso.length == 0)) {
+      check = false
+      $scope.errore.valoreAmmesso = 1
+    } else $scope.errore.valoreAmmesso = 0
+    if ($scope.box.requisito.fgStampabile == "S" && !$scope.box.requisito.idDocumento) {
+      check = false
+      $scope.errore.documento = 1
+    } else $scope.errore.documento = 0
+    if ($scope.box.requisito.cdTipoRequisito == $scope.box.tipiRequisito.DOMANDA_SEMPLICE.valore) check = controlloCampiReqTipoOggetto(check)
+    return check
+  }
+
+  $scope.onDeleteFacSimile = function(idDocumentoAllegato) {
+    if (!idDocumentoAllegato) {
+      $scope.docFacSimileToDelete.push(idDocumentoAllegato);
+    }
+  }
+
+  $scope.salva = function() {
+    if (!controlloCampiRequisito()) return $scope.errorSave = true
+    $scope.errorSave = false
+    if ($scope.box.requisito.idRequisito) {
+      if ($scope.box.requisito.reqTipoOggetto && $scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == 'UPLOAD_FILE') updateRequisitoUpload()
+      else if ($scope.box.requisito.reqTipoOggetto && $scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == 'FORMULA') updateRequisitoFormula()
+      else updateRequisito()
+    } else {
+      if (!$scope.box.requisito.dsTestoOutputRisp) $scope.box.requisito.dsTestoOutputRisp = "$TestoRisp$"
+      if ($scope.box.requisito.reqTipoOggetto && $scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == 'UPLOAD_FILE') insertRequisitoUpload()
+      else if ($scope.box.requisito.reqTipoOggetto && $scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == 'FORMULA') insertRequisitoFormula()
+      else {
+        if ($scope.box.requisito.reqTipoOggetto && $scope.box.requisito.reqTipoOggetto.cdTipoFormato == $scope.box.tipiFormato.DATA.valore) $scope.box.requisito.reqTipoOggetto.listValoreAmmesso = $scope.valoriAmmessoListBackup
+        insertRequisito()
+      }
+    }
+  }
+
+  $scope.setShowParameters = function() {
+    if (!$scope.box.requisito.cdTipoRequisito) return $scope.errore.cdTipoRequisito = true
+    else $scope.errore.cdTipoRequisito = false
+    if ($scope.box.requisito.cdTipoRequisito == 'DOMANDA_SEMPLICE' && !$scope.box.requisito.reqTipoOggetto.tipoOggetto) return $scope.errore.tipoOggetto = true
+    else if ($scope.box.requisito.cdTipoRequisito == 'TITOLO') return $scope.showParameters = true
+    else $scope.errore.tipoOggetto = false
+    if ($scope.box.requisito.reqTipoOggetto.tipoOggetto.fgFormatoTesto == 'S' && !$scope.box.requisito.reqTipoOggetto.cdTipoFormato) return $scope.errore.cdTipoFormato = true
+    else $scope.errore.cdTipoFormato = false
+    return $scope.showParameters = true
+  }
+
+  $scope.setFacSimileForm = function(facSimileForm) {
+    $scope.facSimileFormLink = facSimileForm;
+  }
+
+  // GESTIONE REQUISITO
+
+  // SETUP PAGINA
+
+  const getListRequisitoReferenziabile = function() {
+    if (!$scope.box.requisito.idRequisito) return $q.when([])
+    return $scope.$parent.getListRequisitoReferenziabile({
+      id: $scope.box.requisito.idRequisito,
+    }, false).then(function(response) {
+      $scope.box.listRequisitiReferenziabili = response.payload
+    })
+  }
+
+  const setupTabs = function() {
+    $scope.tabs.VALIDAZIONE_DIRETTA.cod = $scope.box.tipiDipendenza.VALIDAZIONE_DIRETTA
+    $scope.tabs.VALIDAZIONE_CORRELATA.cod = $scope.box.tipiDipendenza.VALIDAZIONE_CORRELATA
+    $scope.tabs.VISIBILITA.cod = $scope.box.tipiDipendenza.VISIBILITA
+    $scope.tabs.STAMPABILITA.cod = $scope.box.tipiDipendenza.STAMPABILITA
+    if ($scope.box.requisito.reqTipoOggetto) setupTabsFlagReqTipoOggetto()
+  }
+
+  const setupEntita = function() {
+    $scope.box.requisito.cdEntita = $scope.box.moduloDati.templateParam.cdTemplate
+    if ($scope.$parent.config.idEntita) $scope.box.requisito.idEntita = $scope.$parent.config.idEntita
+    else $scope.error = true
+  }
+
+  const setupTipiOggetto = function(data) {
+    const result = {}
+    for (let i = 0; i < data.length; i++) result[data[i].cdTipoOggetto] = data[i]
+    return result
+  }
+
+  const getDocumento = function() {
+    if (!$scope.box.requisito.idDocumento) return $q.when(null)
+    $scope.$parent.getDocumento($scope.box.requisito.idDocumento).then(function(doc) {
+      $scope.selezioneDocumento(doc)
+    })
+  }
+
+  const errorGetListDocumenti = function() {
+    $scope.box.listDocumenti = []
+    $scope.box.requisito.fgStampabile = "N"
+  }
+
+  const retrieveDocumenti = function() {
+    return $scope.$parent.retrieveDocumenti().then(function(documenti) {
+      $scope.box.listDocumenti = documenti
+      if ($scope.box.listDocumenti.length <= 0 && !$scope.box.requisito.idRequisito) $scope.box.requisito.fgStampabile = 'N'
+    }, errorGetListDocumenti(), errorGetListDocumenti())
+  }
+
+  const countReferenceRequisitoByIdRequisito = function() {
+    if (!$scope.box.requisito.idRequisito) return
+    return moduloDatiService.countReferenceRequisitoByIdRequisito({
+      id: $scope.box.requisito.idRequisito
+    }, false).then(function(response) {
+      for (name in response.payload) {
+        if (name != 'TESTO_OUTPUT' && name != 'STAMPABILITA') $scope.tabs[name].count = " - (" + response.payload[$scope.tabs[name].cod.valore] + ")";
+        else $scope.tabs['STAMPABILITA'].count = " - (" + (response.payload[$scope.tabs['STAMPABILITA'].cod.valore] + response.payload['TESTO_OUTPUT']) + ")";
+      }
+    })
+  }
+
+  const endSetup = function() {
+    const promises = [
+      getListRequisitoReferenziabile(),
+      retrieveDocumenti(),
+      getDocumento(),
+      countReferenceRequisitoByIdRequisito(),
+    ]
+    $q.all(promises).then(function() {
+      $scope.box.mainFg = true
+      $scope.box.dsLabelRequisito = angular.copy($scope.box.requisito.dsLabelRequisito)
+    })
+  }
+
+  const getRequisito = function(idRequisito) {
+    moduloDatiService.getRequisito({
+      idRequisito: idRequisito,
+      getCompleto: 'S'
+    }).then(function(response) {
+      $scope.box.requisito = response.payload
+      if ($scope.box.requisito.reqTipoOggetto && $scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == 'FORMULA') {
+        $scope.regola.referenceRequisito = $filter('filter')($scope.box.requisito.listReferenceRequisito, {
+          cdTipoDipendenza: 'FORMULA'
+        })[0]
+        $scope.formulaCondizioneBackup = angular.copy($scope.regola.referenceRequisito.dsCondizione)
+        $scope.regola.validaBtnBg = 1
+      } else if ($scope.box.requisito.reqTipoOggetto && $scope.box.requisito.reqTipoOggetto.tipoOggetto.cdTipoOggetto == 'UPLOAD_FILE') {
+        $scope.documentoFacSimile = angular.copy($scope.box.requisito.reqTipoOggetto.listDocRichiesto[0])
+        moduloDatiService.fileDownload({
+          idDocumento: $scope.documentoFacSimile.idDocAllegato
+        }, false).then(function(response) {
+          $scope.fileToUpload = response.payload
+        })
+      }
+      $scope.showParameters = true
+      endSetup()
+    })
+  }
+
+  const setupContent = function(data) {
+    $scope.box.moduloDati = angular.copy(data.moduloDati)
+    $scope.box.sezione = angular.copy(data.sezione)
+    setupEntita()
+    setupTabs()
+    if (!data.idRequisito) {
+      $scope.box.requisito.idSezione = $scope.box.sezione.idSezione
+      $scope.box.requisito.idModuloDati = $scope.box.moduloDati.idModuloDati
+      $scope.documentiFacSimili = [];
+      endSetup()
+    } else getRequisito(data.idRequisito)
+  }
+
+  const init = function() {
+    $scope.$parent.init().then(function(data) {
+      if (!data) return $scope.error = true
+      codService.get(['TIPO_REQUISITO', 'TIPO_FORMATO', 'TIPO_DIPENDENZA', 'TEMPLATE_MDL', 'TIPO_RICHIESTA', 'TIPO_OBBLIGO', 'TIPO_RISPOSTA'], [true, true, false, false, false, false, false]).then(function(result) {
+        $scope.box.listTipoRequisito = result[0]
+        $scope.box.tipiRequisito = codService.convertListToJson($scope.box.listTipoRequisito)
+        $scope.box.listTipoFormato = result[1]
+        $scope.box.tipiFormato = codService.convertListToJson($scope.box.listTipoFormato)
+        $scope.box.tipiDipendenza = result[2]
+        $scope.box.templatesModuloDati = result[3]
+        $scope.listTipologiaRichiesta = result[4]
+        $scope.listTipoObbligatorieta = result[5]
+        $scope.listTipoInvioRisposta = result[6]
+        moduloDatiService.getListEtichette({}).then(function(response) {
+          $scope.box.listEtichette = response.payload
+        }, function() {
+          $scope.box.listEtichette = []
+        });
+        moduloDatiService.getListTipoOggetto({}).then(function(response) {
+          $scope.box.listTipoOggetto = response.payload
+          $scope.box.tipiOggetto = setupTipiOggetto($scope.box.listTipoOggetto)
+          setupContent(data)
+        }, function() {
+          $scope.error = true
+        });
+      })
+    })
+  }
+  init()
+
+  // SETUP PAGINA
+
+  // INIZIO LISTENERS
+
+  $scope.$on('deleteReferenceRequisito', function() {
+    $scope.getListReferenceRequisitoByIdRequisito()
+  })
+
+  $scope.$on('insertRequisito', function(data) {
+    if (data) {
+      getListRequisitoReferenziabile()
+      countReferenceRequisitoByIdRequisito()
+    }
+  })
+
+  // FINE LISTENERS
+
+}])
+
+angular.module("eprocApp").controller("deleteReferenceRequisitoController", ['$scope', '$uibModalInstance', 'moduloDatiService', 'uibModalData', function($scope, $uibModalInstance, moduloDatiService, uibModalData) {
+
+  $scope.error = null
+
+  $scope.closeModal = function() {
+    $uibModalInstance.dismiss()
+  }
+
+  $scope.deleteReferenceRequisito = function() {
+    moduloDatiService.deleteReferenceRequisito({
+      id: $scope.referenceRequisito.idReference
+    }, false).then(function() {
+      $scope.$emit('deleteReferenceRequisito', true)
+      $scope.closeModal()
+    }, function() {
+      $scope.error = "ERROR_NON_GESTITO"
+    }, function() {
+      $scope.error = response
+    })
+  }
+
+  const init = function() {
+    $scope.referenceRequisito = uibModalData.referenceRequisito
+  }
+  init()
+
+}])

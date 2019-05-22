@@ -1,0 +1,319 @@
+<div class="container-fluid" style="margin-bottom:5%">
+  <div class="row">
+    <ng-include src='"./views/utente/templates/cruscotto.html"'></ng-include>
+  </div>
+  <div class="row">
+    <div class="col-sm-2">
+      <ng-include src='"./views/utente/templates/menu.html"'></ng-include>
+    </div>
+    <div class="col-sm-10" style="min-height:400px;border-left:1px solid #cecece">
+
+      <!-- Reg PA -->
+
+      <div class="row" style="margin: 2%">
+        <div class="col-sm-4">
+          <span class="font-sottotitolo" translate>SSA_REGISTRATION_PA</span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="goToEmailPending()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-share"></span><span style="margin-left:1.5%" translate>SSA_EMAIL_PENDING_BUTTON</span></button>
+        </div>
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="goToGestioneUtenti()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-user"></span><span style="margin-left:1.5%" translate>SSA_USERS_MANAGEMENT_BUTTON</span></button>
+        </div>
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectGestioneRichieste()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-book"></span>
+            <span style="margin-left:1.5%" translate>SSA_REQUEST_MANAGEMENT_BUTTON</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:5%">
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectAmministrazione()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-ok-circle"></span>
+            <span style="margin-left:1.5%" translate>SSA_ADMINISTRATION_VALIDATION_BUTTON</span>
+          </button>
+        </div>
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="testBatch('/utente_bo/testBatchDeleghe')" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-folder-open"></span>
+            <span style="margin-left:1.5%" translate>SSA_TEST_DELEGHE_BUTTON</span>
+          </button>
+        </div>
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectGestioneDisclaimer()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-list"></span><span class="fab fa-cuttlefish"></span><span
+              style="margin-left:1.5%"></span><span translate>SSA_GESTISCI_DISCLAIMER_BUTTON</span></button>
+        </div>
+      </div>
+
+      <!-- Abi imp -->
+
+      <div class="row" style="margin: 2%">
+        <div class="col-sm-4">
+          <span class="font-sottotitolo" translate>SSA_ABILITAZIONE_IMPRESA</span>
+        </div>
+      </div>
+
+
+      <div class="row">
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectBando()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-folder-open"></span>
+            <span style="margin-left:1.5%;font-size: 0.9em" translate>UPPERCASE_ANNOUNCEMENT</span>
+          </button>
+        </div>
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectModuloDati()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-folder-open"></span>
+            <span style="margin-left:1.5%" translate>DATA_MODULES</span></button>
+        </div>
+
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectStoricoBando()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-folder-open"></span>
+            <span style="margin-left:1.5%" translate>SSA_STORICI_BANDO_BUTTON</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:5%">
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectStoricoAbilitazioni()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-folder-open"></span>
+            <span style="margin-left:1.5%;font-size: 0.9em" translate>SSA_STORICI_ABILITAZIONI_BUTTON</span>
+          </button>
+        </div>
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectStoricoImpresa()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-folder-open"></span>
+            <span style="margin-left:1.5%" translate>SSA_STORICI_IMPRESE_BUTTON</span></button>
+        </div>
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectRichiesteStoricoAbilitazioni()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-folder-open"></span>
+            <span style="margin-left:1.5%;font-size: 0.6em" translate>SSA_STORICI_RICHIESTE_ABILITAZIONE_BUTTON</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:5%">
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectStoricoAbilitazioniLR()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-folder-open"></span>
+            <span style="margin-left:1.5%;font-size: 0.8em" translate>SSA_STORICI_ABILITAZIONI_LR_BUTTON</span>
+          </button>
+        </div>
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectGestioneTemplate(true)" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-list-alt"></span><span class="fab fa-cuttlefish"></span>
+            <span style="margin-left:1.5%"></span> <span translate>SSA_TEMPLATE_BUTTON</span></button>
+        </div>
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width" style="width:80%;border-radius:4px" ng-click="redirectBandiAmministrativi()" title="Messaggio Temporaneo">
+            <span class="glyphicon glyphicon-folder-open"></span><span style="margin-left:5%" translate>SSA_BANDI_AMMINISTRATIVI_BUTTON</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:5%">
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width" style="width:80%;border-radius:4px" ng-click="redirectPercorsoNettoPA()" title="Messaggio Temporaneo">
+            <span class="glyphicon glyphicon-folder-open"></span><span style="margin-left:2.5%;font-size: 0.6em" translate>SSA_PERCORSO_NETTO_BUTTON</span>
+          </button>
+        </div>
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width" style="width:80%;border-radius:4px" ng-click="redirectStoricoPercorsoNettoPA()" title="Messaggio Temporaneo">
+            <span class="glyphicon glyphicon-folder-open"></span><span style="margin-left:2.5%;font-size: 0.5em" translate>SSA_STORICO_PERCORSO_NETTO_BUTTON</span>
+          </button>
+        </div>
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width" style="width:80%;border-radius:4px" ng-click="redirectPercorsoNettoPC()" title="Messaggio Temporaneo">
+            <span class="glyphicon glyphicon-folder-open"></span><span style="margin-left:2.5%;font-size: 0.6em">PERCORSO NETTO PRATICHE COMMERCIALI</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:5%">
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width" style="width:80%;border-radius:4px" ng-click="redirectStoricoPercorsoNettoPC()" title="Messaggio Temporaneo">
+            <span class="glyphicon glyphicon-folder-open"></span><span style="margin-left:2.5%;font-size: 0.5em">STORICO PERCORSO NETTO PRATICHE COMMERICIALI</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- WIP -->
+
+      <!-- <div class="row" style="margin-top:5%">
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="" title="Messaggio Temporaneo">
+            <span style="margin-left:1.5%;font-size:0.8em">ASSOCIAZIONE STRUMENTO - ENTE</span>
+          </button>
+        </div>
+    </div>
+
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="" title="Messaggio Temporaneo">
+            <span style="margin-left:1.5%;">ANAGRAFICA STRUMENTI</span>
+          </button>
+        </button>
+      </div>
+        </div>
+      </div> -->
+
+      <!-- FINE WIP -->
+
+      <div class="row" style="margin: 2%">
+        <div class="col-sm-4">
+          <span class="font-sottotitolo" translate>SSA_CONSERVAZIONE_NORMA</span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="openParerModal()" title="Messaggio Temporaneo"><span class="fab fa-cuttlefish"></span><span style="margin-left:1.5%"></span>
+            <span translate>SSA_TEST_INVIO_CONSERVAZIONE_BUTTON</span>
+          </button>
+        </div>
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectConservazioneNorma(true)" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-folder-open"></span><span class="fab fa-cuttlefish"></span><span
+              style="margin-left:1.5%"></span> <span translate>SSA_MONITORAGGIO_INVII_BUTTON</span></button>
+        </div>
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectGestioneRichiesteDocumenti()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-folder-open"></span><span class="fab fa-cuttlefish"></span><span
+              style="margin-left:1.5%"></span> <span style="font-size: 0.8em" translate>SSA_RICHIESTE_DOCUMENTI_BUTTON</span></button>
+        </div>
+      </div>
+      <div class="row" style="margin-top:5%">
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectMonitoraggioErrori()" title="Messaggio Temporaneo"><span class="fab fa-cuttlefish"></span><span style="margin-left:1.5%"></span>
+            <span translate>SSA_MONITORAGGIO_ERRORI_BUTTON</span>
+          </button>
+        </div>
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="redirectReportistica()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-folder-open"></span><span class="fab fa-cuttlefish"></span><span
+              style="margin-left:1.5%"></span> <span translate>SSA_REPORTISTICA_ALLARMI_BUTTON</span></button>
+        </div>
+      </div>
+      <!-- <div class="row" style="margin-top:5%;display: none"> -->
+      <div class="row" style="margin-top:5%">
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="openNegativiModal()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-folder-open"></span><span class="fab fa-cuttlefish"></span><span
+              style="margin-left:1.5%"></span> <span translate>SSA_INVII_NEGATIVI_BUTTON</span></button>
+        </div>
+        <div class="col-sm-4">
+          <button type="button" class="btn btn-primario ute-responsive-width pcc-menuSsa" ng-click="openNegativiFirmaModal()" title="Messaggio Temporaneo"><span class="glyphicon glyphicon-film"></span><span class="fab fa-cuttlefish"></span><span
+              style="margin-left:1.5%"></span> <span style="font-size:0.8em" translate>SSA_INVII_NEGATIVI_FIRMA_BUTTON</span></button>
+        </div>
+      </div>
+
+      <!-- Dummy -->
+
+      <div class="row" style="display:none">
+        <div class="col-sm-12">
+          <div class="row" style="margin-top:1.5%;">
+            <div class="col-sm-12">
+              <label for="test-url">URL</label>
+              <input id="test-url" name="test-url" class="form-control" type="text" title="Messaggio Temporaneo" autocomplete="off" ng-model="test.url" />
+            </div>
+            http://10.1.1.43:7003/bando/bando/getListBandiProgetto
+          </div>
+          <div class="row" style="margin-top:1.5%;">
+            <div class="col-sm-12">
+              <label for="test-headers">Headers</label>
+              <textarea id="test-headers" name="test-headers" class="form-control" type="text" title="Messaggio Temporaneo" autocomplete="off" maxlength="4000" ng-model="test.headers" rows="5"></textarea>
+            </div>
+          </div>
+          <div class="row" style="margin-top:1.5%;">
+            <div class="col-sm-12">
+              <label for="test-textarea" translate>DATE</label>
+              <textarea id="test-textarea" name="test-textarea" class="form-control" type="text" title="Messaggio Temporaneo" autocomplete="off" maxlength="4000" ng-model="test.data" rows="5"></textarea>
+            </div>
+          </div>
+          <div class="row" style="margin-top:1.5%;">
+            <div class="col-sm-2 col-sm-offset-8">
+              <button type="button" class="btn btn-primario ute-responsive-width" ng-click="sendTestPost()" title="Messaggio Temporaneo"><span>POST</span></button>
+            </div>
+            <div class="col-sm-2">
+              <button type="button" class="btn btn-primario ute-responsive-width" ng-click="sendTestGet()" title="Messaggio Temporaneo"><span>GET</span></button>
+            </div>
+          </div>
+          <div class="row" style="margin-top:1.5%;">
+            <div class="col-sm-12">
+              <label for="test-Output">Output</label>
+              <textarea id="test-Output" name="test-Output" class="form-control" type="text" title="Messaggio Temporaneo" autocomplete="off" maxlength="4000" ng-disabled="true" rows="15">{{test.output | json}}</textarea>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Dummy -->
+
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="parerModal" role="dialog" data-backdrop="false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span style="float:right; cursor:pointer" title="Messaggio Temporaneo" class="glyphicon glyphicon-remove" ng-click="closeParerModal()"></span>
+      </div>
+      <div class="modal-body">
+        <div class="row" style="border-bottom: 1px solid #E8E8E8; margin-bottom: 2%; padding-bottom: 2%">
+          <div class="col-sm-6">
+            <button type="button" class="btn btn-primario" style="width: 100%; font-size: 1em" ng-click="testBatch('/conservazione/versamentoNeg')">TEST BATCH NEGOZIAZIONE</button>
+          </div>
+          <div class="col-sm-6">
+            <button type="button" class="btn btn-primario" style="width: 100%; font-size: 1em" ng-click="testBatch('/conservazione/versamentoTd')">TEST BATCH TRATTATIVE DIRETTE</button>
+          </div>
+        </div>
+        <div class="row" style="border-bottom: 1px solid #E8E8E8; margin-bottom: 2%; padding-bottom: 2%">
+          <div class="col-sm-6">
+            <button type="button" class="btn btn-primario" style="width: 100%; font-size: 1em" ng-click="testSendData('/conservazione/sendMetadatiNeg')">INVIA DATI NEGOZIAZIONE</button>
+          </div>
+          <div class="col-sm-6">
+            <button type="button" class="btn btn-primario" style="width: 100%; font-size: 1em" ng-click="testSendData('/conservazione/sendMetadatiTd')">INVIA DATI TRATTATIVE DIRETTE</button>
+          </div>
+        </div>
+        <div class="row" style="border-bottom: 1px solid #E8E8E8; margin-bottom: 2%; padding-bottom: 2%">
+          <div class="col-sm-6">
+            <button type="button" class="btn btn-primario" style="width: 100%; font-size: 1em" ng-click="testBatch('/conservazione/versamentoOda')">TEST BATCH ORDINI</button>
+          </div>
+          <div class="col-sm-6">
+            <button type="button" class="btn btn-primario" style="width: 100%; font-size: 1em" ng-click="testBatch('/conservazione/versamentoCat')">TEST BATCH CATALOGO</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-6">
+            <button type="button" class="btn btn-primario" style="width: 100%; font-size: 1em" ng-click="testSendData('/conservazione/sendMetadatiOda')">INVIA DATI ORDINI</button>
+          </div>
+          <div class="col-sm-6">
+            <button type="button" class="btn btn-primario" style="width: 100%; font-size: 1em" ng-click="testSendData('/conservazione/sendMetadatiCat')">INVIA DATI CATALOGO</button>
+          </div>
+        </div>
+        <div class="row" style="margin-top:2%">
+          <div class="col-sm-12">
+            <label for="Json" display="none">json</label>
+            <textarea id="Json" ng-model="testJson" class="form-control" style="height:40vh"></textarea>
+          </div>
+        </div>
+        <div class="row" style="margin-top:1%" ng-if="sendDataResponse != null">
+          <div class="col-sm-12">
+            <label for="dataResponse" display="none">dataResponse</label>
+            <textarea read-only id="dataResponse" class="form-control" style="height:30vh" ng-model="sendDataResponse"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-include src='"./views/conservazione/templates/inviiNegativiModal.html"'></ng-include>
+<ng-include src='"./views/conservazione/templates/inviiNegativiFirmaModal.html"'></ng-include>
