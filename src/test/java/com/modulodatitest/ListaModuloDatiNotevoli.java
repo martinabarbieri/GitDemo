@@ -157,6 +157,8 @@ public void SectionAdding() throws InterruptedException {
 	Assert.assertTrue(driver.findElement(By.xpath("/html[1]/body[1]/div[3]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[5]/div[1]/div[1]/div[1]/div[1]/div[2]/div[1]/div[2]/span[@class='glyphicon glyphicon-print ute-ok']")).isDisplayed());
 	System.out.println("Selected Checkbox Stampabilità - display green print icon");
 	//driver.WebDriver.attachToSession(executor, session_id);
+	System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+	System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 }
 
 
